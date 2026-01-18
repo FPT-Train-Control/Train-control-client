@@ -16,13 +16,13 @@
     <script src="https://unpkg.com/docx@7.1.0/build/index.js"></script>
   </head>
   <body>
-    <header style="padding-bottom: 0px;padding-top: 0px;border-bottom-width: 5px;border-right-width: 5px;">
-      <img src="./a.png" style"size" alt="Logo" style="size: 310; padding-left: 20px;">
-      <div style="padding-left: 40px;">
-        <div class="banner" style="padding-bottom: 10px;">ĐƯỜNG SẮT VIỆT NAM</div>
-        <div class="banner" style="font-size: 22px;">Hệ Thống Giám Sát Và Điều Khiển Giao Cắt Đường Sắt Thông Minh</div>
+    <header>
+      <img src="./a.png" alt="Logo">
+      <div>
+        <div class="banner">ĐƯỜNG SẮT VIỆT NAM</div>
+        <div class="banner">Hệ Thống Giám Sát Và Điều Khiển Giao Cắt Đường Sắt Thông Minh</div>
       </div>
-      <img src="./OIP-removebg-preview.png" style="padding-right: 0px; height: 100px; transform: scaleX(-1); padding-left: 20px;">
+      <img src="./OIP-removebg-preview.png" alt="Logo 2" style="transform: scaleX(-1);">
     </header>
     <div class="nav-bar">
       <button>Thông Tin Tàu</button>
@@ -30,7 +30,7 @@
       <button>Bảng Điều Khiển</button>
     </div>
     <div id="sectionHoSoTau">
-      <h1 style="padding-left: 80px; font-size: 25px; padding-top: 10px; padding-bottom: 10px;">Thông Tin Tàu</h1>
+      <h1>Thông Tin Tàu</h1>
       <div class="controls">
         <input type="text" id="searchInput" placeholder="Search..." />
         <select id="filterTenTau">
@@ -72,58 +72,56 @@
       </table>
     </div>
     <div id="sectionPhanTich" style="display:none;">
-      <h1 style="padding-left: 80px; font-size: 25px; padding-top: 10px; padding-bottom: 10px;">Phân Tích Dữ Liệu</h1>
-      <div style="width:90%; margin:auto;">
+      <h1>Phân Tích Dữ Liệu</h1>
+      <div>
         <h3>1. Tốc Độ Trung Bình Mỗi Tàu</h3>
         <canvas id="avgSpeedChart" height="150"></canvas>
-        <h3 style="margin-top:40px;">2. Số Chuyến Mỗi Tàu</h3>
+        <h3>2. Số Chuyến Mỗi Tàu</h3>
         <canvas id="tripCountChart" height="150"></canvas>
-        <h3 style="margin-top:40px;">3. Tốc Độ Trung Bình Mỗi Ngày</h3>
+        <h3>3. Tốc Độ Trung Bình Mỗi Ngày</h3>
         <canvas id="speedPerDayChart" height="150"></canvas>
       </div>
     </div>
     <div id="sectionBangDieuKhien" style="display:none;">
-      <h1 style="padding-left: 80px; font-size: 25px; padding-top: 10px; padding-bottom: 10px;">Bảng Điều Khiển</h1>
-      <div style="display: flex;flex-direction: row;margin-right: 200px;margin-left: 200px;">
+      <h1>Bảng Điều Khiển</h1>
+      <div style="display: flex; flex-direction: row; margin: 0 20px; gap: 30px; justify-content: center; flex-wrap: wrap;">
         <div class="dashboard-controls">
-          <div style="display: flex; flex-direction: column; align-items: flex-end; padding: 20px;">
-            <div style="padding-left: 20px; padding-bottom: 20px; padding-top: 20px; padding-right: 100px;">
-              <div>
-                <span>Trạng thái barrier</span>
+          <div>
+            <h3 style="margin-top: 0;">Barrier</h3>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 15px;">
+              <div style="text-align: center;">
+                <div style="margin-bottom: 10px; font-weight: 700;">Trạng thái</div>
                 <span id="servoStateLabel"></span>
-                <img id="servoSatateLabelImg" src="./Barrier Open.png" width="100" height="100">
               </div>
-              <div>
-                <span>Điều khiển barrier</span>
-                <button id="servoToggle">Đang tải trạng thái...</button>
-              </div>
+              <img id="servoSatateLabelImg" src="./Barrier Open.png" width="100" height="100" style="border-radius: 8px;">
+              <button id="servoToggle">Đang tải trạng thái...</button>
             </div>
           </div>
         </div>
         <div class="dashboard-controls">
-          <div style="padding-left: 100px; padding-bottom: 20px; padding-top: 20px; padding-right: 20px;" class="dashboard-controls">
-            <div>
-              <span>Trạng thái hệ thống</span>
-              <span id="autoStateLabel"></span>
-              <img id="autoSatateLabelImg" src="./Automation.gif" width="100" height="100">
-            </div>
-            <div>
-              <span>Điều khiển hệ thống</span>
+          <div>
+            <h3 style="margin-top: 0;">Hệ Thống Tự Động</h3>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 15px;">
+              <div style="text-align: center;">
+                <div style="margin-bottom: 10px; font-weight: 700;">Trạng thái</div>
+                <span id="autoStateLabel"></span>
+              </div>
+              <img id="autoSatateLabelImg" src="./Automation.gif" width="100" height="100" style="border-radius: 8px;">
               <button id="autoToggle">Đang tải trạng thái...</button>
             </div>
           </div>
-          <div class="collapsible-container">
-            <button class="toggle-form-btn">Cài đặt</button>
-            <form id="settingsForm" class="hidden">
-              <label for="distance">Khoảng cách K1 -> K2 (m):</label>
-              <input type="number" id="distance" name="distance" placeholder="30" required>
-              <label for="delay1">Cảnh báo sớm (s):</label>
-              <input type="number" id="delay1" name="delay1" placeholder="20" required>
-              <label for="delay2">Đóng barrier trước (s):</label>
-              <input type="number" id="delay2" name="delay2" placeholder="10" required>
-              <button type="submit">Lưu</button>
-            </form>
-          </div>
+        </div>
+        <div class="collapsible-container">
+          <button class="toggle-form-btn">⚙️ Cài đặt</button>
+          <form id="settingsForm" class="hidden">
+            <label for="distance">Khoảng cách K1 → K2 (m):</label>
+            <input type="number" id="distance" name="distance" placeholder="30" required>
+            <label for="delay1">Cảnh báo sớm (s):</label>
+            <input type="number" id="delay1" name="delay1" placeholder="20" required>
+            <label for="delay2">Đóng barrier trước (s):</label>
+            <input type="number" id="delay2" name="delay2" placeholder="10" required>
+            <button type="submit">💾 Lưu</button>
+          </form>
         </div>
       </div>
     </div>
