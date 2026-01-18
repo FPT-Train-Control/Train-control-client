@@ -76,16 +76,16 @@ header .banner:nth-of-type(2) {
   z-index: 110;
   display: flex;
   justify-content: flex-end;
-  background: linear-gradient(90deg, #1a1a2e, #16213e);
+  background: linear-gradient(90deg, #f5a623, #ff9800);
   border-top: 2px solid var(--primary-color);
   border-bottom: 3px solid var(--primary-color);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 15px rgba(255, 102, 0, 0.3);
 }
 
 .nav-bar button {
   width: 165px;
-  background: linear-gradient(180deg, #2a2a4e, #1f1f35);
-  color: #e0e0e0;
+  background: linear-gradient(180deg, #ffffff, #f5f5f5);
+  color: var(--text-dark);
   border: 2px solid var(--primary-color);
   padding: 12px 20px;
   font-size: 16px;
@@ -131,7 +131,7 @@ header .banner:nth-of-type(2) {
 /* ==================== HEADINGS ====================*/
 h1 {
   position: sticky;
-  top: 49px;
+  top: 56px;
   z-index: 100;
   text-align: left;
   color: #ffffff;
@@ -145,7 +145,7 @@ h1 {
 }
 
 h3 {
-  color: var(--secondary-color);
+  color: var(--primary-color);
   font-weight: 700;
   margin: 20px 0 15px 0;
   font-size: 18px;
@@ -155,16 +155,18 @@ h3 {
 
 /* ==================== CONTROLS ====================*/
 .controls {
-  margin: 20px auto;
+  margin: 0;
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
   justify-content: center;
-  padding: 15px;
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 10px;
-  box-shadow: var(--shadow-sm);
-  backdrop-filter: blur(5px);
+  padding: 20px 15px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8f8f8 100%);
+  border-bottom: 2px solid var(--border-light);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  position: sticky;
+  top: 122px;
+  z-index: 95;
 }
 
 .controls input,
@@ -231,8 +233,9 @@ table {
   width: 100%;
   border-collapse: collapse;
   background: #ffffff;
-  border-radius: 10px;
-  overflow: hidden;
+  border-radius: 0;
+  overflow: visible;
+  margin: 0;
   margin-bottom: 30px;
   box-shadow: var(--shadow-md);
   animation: slideUp 0.5s ease;
@@ -266,8 +269,8 @@ th {
   letter-spacing: 0.5px;
   user-select: none;
   position: sticky;
-  top: 0;
-  z-index: 10;
+  top: 178px;
+  z-index: 80;
 }
 
 th:hover {
@@ -307,11 +310,11 @@ tbody tr:nth-child(even) {
 }
 
 .dashboard-controls {
-  background: linear-gradient(135deg, #1a1a2e, #16213e);
+  background: linear-gradient(135deg, #ffffff, #f8f9fa);
   border: 3px solid var(--primary-color);
   border-radius: 12px;
   padding: 25px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3), 0 0 20px rgba(255, 102, 0, 0.2);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15), 0 0 20px rgba(255, 102, 0, 0.15);
   position: relative;
   overflow: hidden;
   transition: all var(--transition-normal);
@@ -340,7 +343,7 @@ tbody tr:nth-child(even) {
 }
 
 .dashboard-controls:hover {
-  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4), 0 0 30px rgba(255, 102, 0, 0.4);
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2), 0 0 30px rgba(255, 102, 0, 0.3);
   transform: translateY(-5px);
 }
 
@@ -348,7 +351,7 @@ tbody tr:nth-child(even) {
   color: var(--primary-color);
   margin: 0 0 20px 0;
   font-size: 20px;
-  text-shadow: 0 0 10px rgba(255, 102, 0, 0.3);
+  text-shadow: 0 0 10px rgba(255, 102, 0, 0.2);
   border-bottom: 2px solid var(--primary-color);
   padding-bottom: 15px;
   width: 100%;
@@ -372,8 +375,8 @@ tbody tr:nth-child(even) {
 }
 
 .dashboard-controls > div > div:first-child > div:first-child {
-  background: linear-gradient(135deg, rgba(0, 169, 236, 0.1), rgba(3, 78, 162, 0.1));
-  border: 2px solid var(--secondary-color);
+  background: linear-gradient(135deg, rgba(255, 102, 0, 0.1), rgba(230, 92, 0, 0.05));
+  border: 2px solid var(--primary-color);
   border-radius: 8px;
   padding: 15px 25px;
   text-align: center;
@@ -381,7 +384,7 @@ tbody tr:nth-child(even) {
 }
 
 .dashboard-controls > div > div:first-child > div:first-child > div:first-child {
-  color: #00a9ec;
+  color: var(--primary-color);
   font-weight: 700;
   font-size: 14px;
   letter-spacing: 1px;
@@ -392,16 +395,16 @@ tbody tr:nth-child(even) {
 .dashboard-controls img {
   border: 3px solid var(--primary-color);
   border-radius: 12px;
-  background: linear-gradient(135deg, rgba(255, 102, 0, 0.1), rgba(230, 92, 0, 0.1));
+  background: linear-gradient(135deg, rgba(255, 102, 0, 0.08), rgba(230, 92, 0, 0.05));
   padding: 8px;
-  box-shadow: 0 0 15px rgba(255, 102, 0, 0.3), inset 0 0 10px rgba(255, 102, 0, 0.1);
+  box-shadow: 0 0 15px rgba(255, 102, 0, 0.2), inset 0 0 10px rgba(255, 102, 0, 0.05);
   transition: all var(--transition-normal);
   width: 120px;
   height: 120px;
 }
 
 .dashboard-controls img:hover {
-  box-shadow: 0 0 25px rgba(255, 102, 0, 0.5), inset 0 0 15px rgba(255, 102, 0, 0.2);
+  box-shadow: 0 0 25px rgba(255, 102, 0, 0.4), inset 0 0 15px rgba(255, 102, 0, 0.1);
   transform: scale(1.08);
 }
 
@@ -414,7 +417,7 @@ tbody tr:nth-child(even) {
   border-radius: 8px;
   cursor: pointer;
   transition: all var(--transition-normal);
-  box-shadow: 0 6px 20px rgba(255, 102, 0, 0.3);
+  box-shadow: 0 6px 20px rgba(255, 102, 0, 0.25);
   font-weight: 700;
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -437,7 +440,7 @@ tbody tr:nth-child(even) {
 .dashboard-controls button:hover {
   background: linear-gradient(135deg, var(--primary-dark), #d94f00);
   transform: translateY(-3px);
-  box-shadow: 0 10px 30px rgba(255, 102, 0, 0.5);
+  box-shadow: 0 10px 30px rgba(255, 102, 0, 0.4);
   text-shadow: 0 0 10px rgba(255, 102, 0, 0.5);
 }
 
@@ -459,7 +462,7 @@ tbody tr:nth-child(even) {
   font-weight: 700;
   font-size: 16px;
   border-radius: 8px;
-  box-shadow: 0 6px 20px rgba(255, 102, 0, 0.3);
+  box-shadow: 0 6px 20px rgba(255, 102, 0, 0.25);
   min-width: 100px;
   text-align: center;
   transition: all var(--transition-normal);
@@ -471,7 +474,7 @@ tbody tr:nth-child(even) {
 #servoStateLabel:hover,
 #autoStateLabel:hover {
   transform: scale(1.1);
-  box-shadow: 0 10px 30px rgba(255, 102, 0, 0.5);
+  box-shadow: 0 10px 30px rgba(255, 102, 0, 0.4);
   text-shadow: 0 0 10px rgba(255, 102, 0, 0.5);
 }
 
@@ -481,22 +484,13 @@ tbody tr:nth-child(even) {
   animation: fadeIn 0.5s ease;
 }
 
-#sectionHoSoTau .controls {
-  position: sticky;
-  top: 49px;
-  background: rgba(255, 255, 255, 0.95);
-  z-index: 90;
-  padding: 15px;
-  backdrop-filter: blur(10px);
-}
-
 #sectionPhanTich,
 #sectionBangDieuKhien {
   animation: fadeIn 0.5s ease;
 }
 
 #sectionPhanTich > div {
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.95);
   border-radius: 12px;
   padding: 30px;
   margin: 20px auto;
@@ -515,11 +509,11 @@ canvas:hover {
 
 /* ==================== COLLAPSIBLE CONTAINER ====================*/
 .collapsible-container {
-  background: linear-gradient(135deg, #1a1a2e, #16213e);
+  background: linear-gradient(135deg, #ffffff, #f8f9fa);
   border: 3px solid var(--primary-color);
   border-radius: 12px;
   padding: 25px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3), 0 0 20px rgba(255, 102, 0, 0.2);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15), 0 0 20px rgba(255, 102, 0, 0.15);
   transition: all var(--transition-normal);
   position: relative;
   overflow: hidden;
@@ -537,7 +531,7 @@ canvas:hover {
 }
 
 .collapsible-container:hover {
-  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4), 0 0 30px rgba(255, 102, 0, 0.4);
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2), 0 0 30px rgba(255, 102, 0, 0.3);
   transform: translateY(-5px);
 }
 
@@ -553,7 +547,7 @@ canvas:hover {
   cursor: pointer;
   margin-bottom: 15px;
   transition: all var(--transition-normal);
-  box-shadow: 0 6px 20px rgba(255, 102, 0, 0.3);
+  box-shadow: 0 6px 20px rgba(255, 102, 0, 0.25);
   letter-spacing: 1px;
   text-transform: uppercase;
   position: relative;
@@ -574,7 +568,7 @@ canvas:hover {
 .toggle-form-btn:hover {
   background: linear-gradient(135deg, var(--primary-dark), #d94f00);
   transform: translateY(-2px);
-  box-shadow: 0 10px 30px rgba(255, 102, 0, 0.5);
+  box-shadow: 0 10px 30px rgba(255, 102, 0, 0.4);
 }
 
 /* ==================== SETTINGS FORM ====================*/
@@ -617,23 +611,23 @@ canvas:hover {
   padding: 10px 14px;
   font-size: 14px;
   border-radius: 6px;
-  border: 2px solid var(--primary-color);
-  background: rgba(255, 102, 0, 0.05);
-  color: #ffffff;
+  border: 2px solid var(--border-light);
+  background: #ffffff;
+  color: var(--text-dark);
   transition: all var(--transition-normal);
   font-weight: 500;
 }
 
 #settingsForm input[type="number"]::placeholder {
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(0, 0, 0, 0.4);
 }
 
 #settingsForm input[type="number"]:focus {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(255, 102, 0, 0.3);
+  box-shadow: 0 0 0 3px rgba(255, 102, 0, 0.2);
   border-color: var(--primary-color);
   transform: translateY(-2px);
-  background: rgba(255, 102, 0, 0.1);
+  background: #fafafa;
 }
 
 #settingsForm button[type="submit"] {
@@ -646,7 +640,7 @@ canvas:hover {
   border-radius: 6px;
   cursor: pointer;
   transition: all var(--transition-normal);
-  box-shadow: 0 6px 20px rgba(255, 102, 0, 0.3);
+  box-shadow: 0 6px 20px rgba(255, 102, 0, 0.25);
   margin-top: 8px;
   letter-spacing: 0.5px;
   text-transform: uppercase;
@@ -668,7 +662,7 @@ canvas:hover {
 #settingsForm button[type="submit"]:hover {
   background: linear-gradient(135deg, var(--primary-dark), #d94f00);
   transform: translateY(-2px);
-  box-shadow: 0 10px 30px rgba(255, 102, 0, 0.5);
+  box-shadow: 0 10px 30px rgba(255, 102, 0, 0.4);
 }
 
 /* ==================== GENERAL TRANSITIONS ====================*/
@@ -704,6 +698,7 @@ input[type="time"] {
 
   .controls {
     gap: 8px;
+    padding: 15px;
   }
 
   .controls input,
@@ -748,7 +743,7 @@ input[type="time"] {
 
   .controls {
     flex-direction: column;
-    margin: 10px;
+    padding: 15px;
   }
 
   .controls input,
@@ -809,7 +804,7 @@ input[type="time"] {
   }
 
   .controls {
-    margin: 5px;
+    padding: 10px;
     gap: 5px;
   }
 
