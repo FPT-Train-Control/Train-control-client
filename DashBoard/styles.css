@@ -157,8 +157,9 @@ h3 {
 .controls {
   margin: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   gap: 12px;
+  justify-items: center;
   padding: 20px 15px;
   background: linear-gradient(180deg, #ffffff 0%, #f8f8f8 100%);
   border-bottom: 2px solid var(--border-light);
@@ -178,7 +179,7 @@ h3 {
   color: var(--text-dark);
   transition: all var(--transition-normal);
   font-weight: 500;
-  grid-column: auto;
+  width: 100%;
 }
 
 .controls input:focus,
@@ -202,7 +203,7 @@ h3 {
   box-shadow: var(--shadow-sm);
   position: relative;
   overflow: hidden;
-  grid-column: auto;
+  width: 100%;
 }
 
 .controls button::after {
@@ -227,34 +228,6 @@ h3 {
 .controls button:hover::after {
   width: 300px;
   height: 300px;
-}
-
-/* ==================== CONTROLS LAYOUT ====================*/
-.controls input:nth-child(1),
-.controls input:nth-child(2),
-.controls select:nth-child(3),
-.controls select:nth-child(4),
-.controls select:nth-child(5),
-.controls input:nth-child(6),
-.controls input:nth-child(7),
-.controls input:nth-child(8),
-.controls input:nth-child(9) {
-  grid-column: auto;
-}
-
-.controls button {
-  grid-column: auto;
-}
-
-/* Force buttons to second row */
-.controls button:nth-child(n+10) {
-  grid-column: auto;
-}
-
-@media (max-width: 1200px) {
-  .controls {
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  }
 }
 
 /* ==================== TABLE ====================*/
@@ -298,7 +271,7 @@ th {
   letter-spacing: 0.5px;
   user-select: none;
   position: sticky;
-  top: 122px;
+  top: 230px;
   z-index: 80;
 }
 
@@ -772,57 +745,57 @@ input[type="time"] {
 
   .controls {
     flex-direction: column;
-    margin: 15px;;
+    padding: 15px;
+  }
+
+  .controls input,
+  .controls select,
+  .controls button {
+    width: 100%;
+  }
+
+  table {
+    font-size: 12px;
+  }
+
+  th,
+  td {
+    padding: 8px 6px;
+  }
+
+  .dashboard-controls {
+    padding: 20px !important;
+  }
+
+  .collapsible-container {
+    padding: 20px;
+    margin: 15px;
+  }
+
+  #sectionPhanTich > div {
+    padding: 15px;
+    margin: 15px;
   }
 }
-  .controls input,
+
 @media (max-width: 480px) {
-  header img {tton {
+  header img {
     height: 50px;
   }
 
-  h1 {e {
+  h1 {
     padding: 10px 15px;
     font-size: 18px;
   }
-  th,
+
   header .banner {
-    font-size: 20px;;
+    font-size: 20px;
   }
 
   header .banner:nth-of-type(2) {
-    font-size: 16px;mportant;
+    font-size: 16px;
   }
 
-  table {sible-container {
-    font-size: 11px;
-  } margin: 15px;
-  }
-  th,
-  td {tionPhanTich > div {
-    padding: 6px 4px;
-  } margin: 15px;
-  }
-  .controls {
-    padding: 10px;
-    gap: 5px;idth: 480px) {
-  }eader img {
-    height: 50px;
-  #servoStateLabel,
-  #autoStateLabel {
-    padding: 8px 12px;
-    font-size: 14px;px;
-  } font-size: 18px;
-  }
-  .dashboard-controls {
-    padding: 15px !important;
-  } font-size: 20px;
-  }
-  .dashboard-controls img {
-    width: 100px;nth-of-type(2) {
-    height: 100px;x;
-  }
-}
   table {
     font-size: 11px;
   }
