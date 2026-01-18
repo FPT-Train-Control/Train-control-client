@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" sizes="32x32" href="./a.png">
+    <title>Hệ Thống Giám Sát Và Điều Khiển Giao Cắt Đường Sắt Thông Minh</title>
+    <link rel="stylesheet" href="./styles.css">
+    <!-- SheetJS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- jsPDF and html2canvas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- docx -->
+    <script src="https://unpkg.com/docx@7.1.0/build/index.js"></script>
+  </head>
+  <body>
+    <header style="padding-bottom: 0px;padding-top: 0px;border-bottom-width: 5px;border-right-width: 5px;">
+      <img src="./a.png" style"size" alt="Logo" style="size: 310; padding-left: 20px;">
+      <div style="padding-left: 40px;">
+        <div class="banner" style="padding-bottom: 10px;">ĐƯỜNG SẮT VIỆT NAM</div>
+        <div class="banner" style="font-size: 22px;">Hệ Thống Giám Sát Và Điều Khiển Giao Cắt Đường Sắt Thông Minh</div>
+      </div>
+      <img src="./OIP-removebg-preview.png" style="padding-right: 0px; height: 100px; transform: scaleX(-1); padding-left: 20px;">
+    </header>
+    <div class="nav-bar">
+      <button>Thông Tin Tàu</button>
+      <button>Phân tích dữ liệu</button>
+      <button>Bảng Điều Khiển</button>
+    </div>
+    <div id="sectionHoSoTau">
+      <h1 style="padding-left: 80px; font-size: 25px; padding-top: 10px; padding-bottom: 10px;">Thông Tin Tàu</h1>
+      <div class="controls">
+        <input type="text" id="searchInput" placeholder="Search..." />
+        <select id="filterTenTau">
+          <option value="">Tất Cả Tên Tàu</option>
+        </select>
+        <select id="filterTuyen">
+          <option value="">Tất Cả Tuyến</option>
+        </select>
+        <select id="speedUnit">
+          <option value="kmh">Vận Tốc: km/giờ</option>
+          <option value="mh">Vận Tốc: m/giờ</option>
+          <option value="ms">Vận Tốc: m/giây</option>
+          <option value="cms">Vận Tốc: cm/giây</option>
+        </select>
+        <input type="date" id="dateFrom" />
+        <input type="date" id="dateTo" />
+        <input type="time" id="timeFrom" />
+        <input type="time" id="timeTo" />
+        <button id="exportExcel">Xuất file Excel</button>
+        <button id="exportPDF">Xuất file PDF</button>
+        <button id="exportDOCX">Xuất file Báo cáo</button>
+      </div>
+      <table id="trainTable">
+        <thead>
+          <tr>
+            <th data-key="STT">STT</th>
+            <th data-key="Tên Tàu">Tên Tàu</th>
+            <th data-key="Tuyến">Tuyến</th>
+            <th data-key="Trạm">Trạm</th>
+            <th data-key="Vận Tốc">Vận Tốc</th>
+            <th>Ngày Đến</th>
+            <th>Giờ Đến</th>
+            <th>Ngày Rời</th>
+            <th>Giờ Rời</th>
+            <th data-key="Trạng Thái">Trạng Thái</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div id="sectionPhanTich" style="display:none;">
+      <h1 style="padding-left: 80px; font-size: 25px; padding-top: 10px; padding-bottom: 10px;">Phân Tích Dữ Liệu</h1>
+      <div style="width:90%; margin:auto;">
+        <h3>1. Tốc Độ Trung Bình Mỗi Tàu</h3>
+        <canvas id="avgSpeedChart" height="150"></canvas>
+        <h3 style="margin-top:40px;">2. Số Chuyến Mỗi Tàu</h3>
+        <canvas id="tripCountChart" height="150"></canvas>
+        <h3 style="margin-top:40px;">3. Tốc Độ Trung Bình Mỗi Ngày</h3>
+        <canvas id="speedPerDayChart" height="150"></canvas>
+      </div>
+    </div>
+    <div id="sectionBangDieuKhien" style="display:none;">
+      <h1 style="padding-left: 80px; font-size: 25px; padding-top: 10px; padding-bottom: 10px;">Bảng Điều Khiển</h1>
+      <div style="display: flex;flex-direction: row;margin-right: 200px;margin-left: 200px;">
+        <div class="dashboard-controls">
+          <div style="display: flex; flex-direction: column; align-items: flex-end; padding: 20px;">
+            <div style="padding-left: 20px; padding-bottom: 20px; padding-top: 20px; padding-right: 100px;">
+              <div>
+                <span>Trạng thái barrier</span>
+                <span id="servoStateLabel"></span>
+                <img id="servoSatateLabelImg" src="./Barrier Open.png" width="100" height="100">
+              </div>
+              <div>
+                <span>Điều khiển barrier</span>
+                <button id="servoToggle">Đang tải trạng thái...</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="dashboard-controls">
+          <div style="padding-left: 100px; padding-bottom: 20px; padding-top: 20px; padding-right: 20px;" class="dashboard-controls">
+            <div>
+              <span>Trạng thái hệ thống</span>
+              <span id="autoStateLabel"></span>
+              <img id="autoSatateLabelImg" src="./Automation.gif" width="100" height="100">
+            </div>
+            <div>
+              <span>Điều khiển hệ thống</span>
+              <button id="autoToggle">Đang tải trạng thái...</button>
+            </div>
+          </div>
+          <div class="collapsible-container">
+            <button class="toggle-form-btn">Cài đặt</button>
+            <form id="settingsForm" class="hidden">
+              <label for="distance">Khoảng cách K1 -> K2 (m):</label>
+              <input type="number" id="distance" name="distance" placeholder="30" required>
+              <label for="delay1">Cảnh báo sớm (s):</label>
+              <input type="number" id="delay1" name="delay1" placeholder="20" required>
+              <label for="delay2">Đóng barrier trước (s):</label>
+              <input type="number" id="delay2" name="delay2" placeholder="10" required>
+              <button type="submit">Lưu</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script defer src="./script.js"></script>
+  </body>
+</html>
