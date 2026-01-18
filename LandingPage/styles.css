@@ -314,6 +314,7 @@ body {
   border-radius: 12px;
   box-shadow: var(--shadow-lg);
   overflow: hidden;
+  position: relative; /* Added for positioning the button */
 }
 
 .map-image {
