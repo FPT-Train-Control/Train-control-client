@@ -41,16 +41,6 @@ header {
   border-bottom: 5px solid var(--primary-color);
 }
 
-header img {
-  height: 75px;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
-  transition: transform var(--transition-normal);
-}
-
-header img:hover {
-  transform: scale(1.05);
-}
-
 header .banner {
   left: 50%;
   font-size: 30px;
@@ -126,6 +116,23 @@ header .banner:nth-of-type(2) {
   border-color: #ffaa33;
   box-shadow: 0 0 20px rgba(255, 102, 0, 0.6), inset 0 0 10px rgba(255, 255, 255, 0.1);
   text-shadow: 0 0 10px rgba(255, 102, 0, 0.5);
+}
+
+/* ==================== LOGO LINK ====================*/
+.logo-link {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: transform var(--transition-normal);
+}
+
+.logo-link:hover {
+  transform: scale(1.05);
+}
+
+.logo-link img {
+  height: 75px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
 
 /* ==================== HEADINGS ====================*/
