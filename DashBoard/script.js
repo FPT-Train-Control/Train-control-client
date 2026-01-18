@@ -491,7 +491,16 @@ async function exportPDF() {
   const { jsPDF } = window.jspdf;
   const pdf = new jsPDF('l', 'pt', 'a4');
   const table = document.querySelector("#trainTable");
-  const canvas = await html2canvas(table);
+  
+  // Wait for animations to complete (0.5s is the slideUp animation duration)
+  await new Promise(resolve => setTimeout(resolve, 500));
+  
+  const canvas = await html2canvas(table, {
+    scale: 2,
+    useCORS: true,
+    logging: false,
+    backgroundColor: '#ffffff'
+  });
   const imgData = canvas.toDataURL('image/png');
   const imgProps = pdf.getImageProperties(imgData);
   const pdfWidth = pdf.internal.pageSize.getWidth();
