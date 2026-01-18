@@ -492,21 +492,38 @@ async function exportPDF() {
   const pdf = new jsPDF('l', 'pt', 'a4');
   const table = document.querySelector("#trainTable");
   
-  // Wait for animations to complete (0.5s is the slideUp animation duration)
-  await new Promise(resolve => setTimeout(resolve, 500));
+  // Temporarily disable animations
+  const style = document.createElement('style');
+  style.textContent = `
+    * {
+      animation: none !important;
+      transition: none !important;
+    }
+  `;
+  document.head.appendChild(style);
   
-  const canvas = await html2canvas(table, {
-    scale: 2,
-    useCORS: true,
-    logging: false,
-    backgroundColor: '#ffffff'
-  });
-  const imgData = canvas.toDataURL('image/png');
-  const imgProps = pdf.getImageProperties(imgData);
-  const pdfWidth = pdf.internal.pageSize.getWidth();
-  const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-  pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-  pdf.save("TrainData.pdf");
+  // Wait for any ongoing animations to complete (0.5s slideUp + buffer)
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  
+  try {
+    const canvas = await html2canvas(table, {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      backgroundColor: '#ffffff',
+      allowTaint: true,
+      removeContainer: true
+    });
+    const imgData = canvas.toDataURL('image/png');
+    const imgProps = pdf.getImageProperties(imgData);
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+    pdf.save("TrainData.pdf");
+  } finally {
+    // Re-enable animations
+    document.head.removeChild(style);
+  }
 }
 
 async function exportReportDOCX(tableData, filterTuyenValue, filterTenTauValue, dateFromValue, dateToValue, timeFromValue, timeToValue) {
