@@ -303,7 +303,7 @@ body {
 
 .routes-content {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 50px;
   align-items: center;
 }
@@ -315,6 +315,7 @@ body {
   box-shadow: var(--shadow-lg);
   overflow: hidden;
   position: relative;
+  width: 100%;
 }
 
 .map-image {
@@ -398,35 +399,8 @@ body {
   opacity: 1;
 }
 
-.routes-info h3 {
-  color: var(--secondary-color);
-  font-size: 28px;
-  margin-bottom: 15px;
-}
-
-.routes-info p {
-  color: var(--text-light);
-  margin-bottom: 20px;
-  line-height: 1.6;
-}
-
-.routes-list {
-  list-style: none;
-}
-
-.routes-list li {
-  padding: 12px 0;
-  border-bottom: 1px solid var(--border-light);
-  color: var(--text-dark);
-}
-
-.routes-list li:last-child {
-  border-bottom: none;
-}
-
-.route-name {
-  font-weight: 700;
-  color: var(--primary-color);
+.routes-info {
+  display: none;
 }
 
 /* ==================== CONTACT ====================*/
