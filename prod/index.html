@@ -1,1187 +1,1406 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<link rel="icon" type="image/png" sizes="32x32" href="./FPT_Train_logo.svg_2 (1).png">
-<title>Hệ Thống Giám Sát Và Điều Khiển Giao Cắt Đường Sắt Thông Minh</title>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    background: #f9f9f9;
-    color: #333;
-  }
-  header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: #ffd580;
-    padding: 10px 20px;
-    color: #333;
-    position: relative;
-  }
-  header img {
-    height: 75px;
-  }
-  header .banner {
-    left: 50%;
-    font-size: 30px;
-    font-weight: bold;
-    color: #00a9ec;
-    text-align: center;
-  }
-  .nav-bar {
-		position: sticky;
-    top: 0px;
-    z-index: 110;
-    display: flex;
-    justify-content: right;
-    background-color: #cb895500;
-    border-top: 2px solid #000000;
-    border-bottom: 2px solid #000000;
-  }
-  .nav-bar button {
-    width: 165px;
-    background: #ffffff;
-    color: #333;
-    border: 2px solid #000000;
-    padding: 12px 20px;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background 0.3s, border-color 0.3s;
-  }
-  .nav-bar button:hover {
-    background: #e6e6e6;
-    border-color: #999;
-  }
-  .nav-bar button.active-nav {
-    background: #034ea2;
-    color: #fff;
-    border-color: #cc5200;
-  }
-  h1 {
-	  position: sticky;
-  	top: 0;
-  	z-index: 100;
-    text-align: left;
-    color: #ffffff;
-    background-color: #FF6600;;
-    padding: 20px 0;
-    margin-top: 0;
-  }
-  .controls {
-    margin: 15px auto;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    justify-content: center;
-  }
-  .controls input, .controls select, .controls button {
-    padding: 6px;
-    font-size: 14px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-  }
-  .controls button {
-    background: #FF6600;
-    color: #fff;
-    border: none;
-    cursor: pointer;
-  }
-  .controls button:hover {
-    background: #e65c00;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    background: #fff;
-    border-radius: 4px;
-    overflow: hidden;
-    margin-bottom: 20px;
-  }
-  th, td {
-    padding: 8px;
-    border: 1px solid #eee;
-    text-align: center;
-  }
-  th {
-    background: #FF6600;
-    color: #fff;
-    cursor: pointer;
-  }
-  tr:hover {
-    background: #fff4eb;
-  }
-  .dashboard-controls {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 20px;
-    margin: 20px auto;
-    flex-direction: column;
-    align-content: space-around;
-  }
-  .dashboard-controls button {
-    padding: 12px 24px;
-    font-size: 16px;
-    background-color: #034ea2;
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background 0.3s ease, transform 0.2s ease;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  }
-  .dashboard-controls button:hover {
-    background-color: #00a9ec;
-    transform: translateY(-2px);
-  }
-  #servoStateLabel {
-    display: inline-block;
-    padding: 10px 16px;
-    background-color: #034ea2;
-    color: #ffffff;
-    font-weight: bold;
-    font-size: 16px;
-    border-radius: 6px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    min-width: 50px;
-    text-align: center;
-  }
-  #autoStateLabel {
-    display: inline-block;
-    padding: 10px 16px;
-    background-color: #034ea2;
-    color: #ffffff;
-    font-weight: bold;
-    font-size: 16px;
-    border-radius: 6px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    min-width: 50px;
-    text-align: center;
-  }
-	/* Fade-in animation keyframe */
-  /* @keyframes fadeIn {
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" sizes="32x32" href="./a (1).png">
+    <title>Hệ Thống Giám Sát Và Điều Khiển Giao Cắt Đường Sắt Thông Minh</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        background: #f9f9f9;
+        color: #333;
+      }
+
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: #d8f9ffde;
+        padding: 10px 20px;
+        color: #333;
+        position: relative;
+      }
+
+      header img {
+        height: 75px;
+      }
+
+      header .banner {
+        left: 50%;
+        font-size: 30px;
+        font-weight: bold;
+        color: #00a9ec;
+        text-align: center;
+      }
+
+      .nav-bar {
+        position: sticky;
+        top: 0px;
+        z-index: 110;
+        display: flex;
+        justify-content: right;
+        background-color: #cb895500;
+        border-top: 2px solid #000000;
+        border-bottom: 2px solid #000000;
+      }
+
+      .nav-bar button {
+        width: 165px;
+        background: #ffffff;
+        color: #333;
+        border: 2px solid #000000;
+        padding: 12px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background 0.3s, border-color 0.3s;
+      }
+
+      .nav-bar button:hover {
+        background: #e6e6e6;
+        border-color: #999;
+      }
+
+      .nav-bar button.active-nav {
+        background: #3a0b7b;
+        color: #fff;
+        border-color: #cc5200;
+      }
+
+      h1 {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        text-align: left;
+        color: #ffffff;
+        background-color: #FF6600;
+        padding: 20px 0;
+        margin-top: 0;
+      }
+
+      .controls {
+        margin: 15px auto;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+      }
+
+      .controls input,
+      .controls select,
+      .controls button {
+        padding: 6px;
+        font-size: 14px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+
+      .controls button {
+        background: #FF6600;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+      }
+
+      .controls button:hover {
+        background: #e65c00;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: #fff;
+        border-radius: 4px;
+        overflow: hidden;
+        margin-bottom: 20px;
+      }
+
+      th,
+      td {
+        padding: 8px;
+        border: 1px solid #eee;
+        text-align: center;
+      }
+
+      th {
+        background: #FF6600;
+        color: #fff;
+        cursor: pointer;
+      }
+
+      tr:hover {
+        background: #fff4eb;
+      }
+
+      .dashboard-controls {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 20px;
+        margin: 20px auto;
+        flex-direction: column;
+        align-content: space-around;
+      }
+
+      .dashboard-controls button {
+        padding: 12px 24px;
+        font-size: 16px;
+        background-color: #034ea2;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background 0.3s ease, transform 0.2s ease;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .dashboard-controls button:hover {
+        background-color: #00a9ec;
+        transform: translateY(-2px);
+      }
+
+      #servoStateLabel {
+        display: inline-block;
+        padding: 10px 16px;
+        background-color: #034ea2;
+        color: #ffffff;
+        font-weight: bold;
+        font-size: 16px;
+        border-radius: 6px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        min-width: 50px;
+        text-align: center;
+      }
+
+      #autoStateLabel {
+        display: inline-block;
+        padding: 10px 16px;
+        background-color: #034ea2;
+        color: #ffffff;
+        font-weight: bold;
+        font-size: 16px;
+        border-radius: 6px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        min-width: 50px;
+        text-align: center;
+      }
+
+      /* Fade-in animation keyframe */
+      /* @keyframes fadeIn {
   	from { opacity: 0; transform: translateY(10px); }
   	to { opacity: 1; transform: translateY(0); }
   } */
-  
-  /* Apply fade-in to sections */
-  #sectionHoSoTau,
-  #sectionPhanTich,
-  /* #sectionBangDieuKhien {
+      /* Apply fade-in to sections */
+      #sectionHoSoTau,
+      #sectionPhanTich,
+      /* #sectionBangDieuKhien {
   	animation: fadeIn 0.5s ease both;
   } */
-  
-  /* Animate table rows when rendering */
-  /* #trainTable tbody tr {
+      /* Animate table rows when rendering */
+      /* #trainTable tbody tr {
   	opacity: 0;
   	transform: translateY(10px);
   	animation: fadeIn 0.3s ease forwards;
   } */
-  
-  button, select, input[type="text"], input[type="date"], input[type="time"] {
-  	transition: all 0.3s ease;
-  }
-  
-  .controls input:focus,
-  .controls select:focus {
-  	outline: none;
-  	box-shadow: 0 0 5px rgba(255, 102, 0, 0.6);
-  	border-color: #FF6600;
-  }
-  #sectionHoSoTau {
-  	position: relative;
-  }
-  #sectionHoSoTau .controls {
-  	position: sticky;
-  	top: 49px; /* adjust if your h1 is taller */
-  	background: white;
-  	z-index: 90;
-  	padding: 10px 0;
-  }
-  
-  #trainTable thead {
-  	position: sticky;
-  	top: 0px; /* h1 height + controls height */
-  	background: white;
-  	z-index: 80;
-  }
-  .collapsible-container {
-    margin: 30px auto;
-    padding: 15px;
-    width: 200px;
-    background: #fff;
-    border: 2px dashed #ccc;
-    border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    transition: all 0.3s ease;
-  }
-  
-  .toggle-form-btn {
-    width: 100%;
-    background: #034ea2;
-    color: white;
-    border: none;
-    padding: 10px 16px;
-    font-size: 16px;
-    border-radius: 6px;
-    cursor: pointer;
-    margin-bottom: 15px;
-  }
-  
-  .toggle-form-btn:hover {
-    background: #007fd0;
-  }
-  
-  #settingsForm {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    transition: max-height 0.3s ease, opacity 0.3s ease;
-    overflow: hidden;
-    opacity: 1;
-  }
-  
-  #settingsForm.hidden {
-    display: none;
-  }
-  
-  #settingsForm input[type="number"] {
-    padding: 8px;
-    font-size: 14px;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-  }
-  
-  #settingsForm button[type="submit"] {
-    background: #FF6600;
-    color: white;
-    border: none;
-    padding: 10px;
-    font-size: 15px;
-    border-radius: 6px;
-    cursor: pointer;
-  }
-  
-  #settingsForm button[type="submit"]:hover {
-    background: #e65c00;
-  }
-</style>
-<!-- SheetJS -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<!-- jsPDF and html2canvas -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+      button,
+      select,
+      input[type="text"],
+      input[type="date"],
+      input[type="time"] {
+        transition: all 0.3s ease;
+      }
 
-<!-- docx -->
-<script src="https://unpkg.com/docx@7.1.0/build/index.js"></script>
-</head>
-<body>
+      .controls input:focus,
+      .controls select:focus {
+        outline: none;
+        box-shadow: 0 0 5px rgba(255, 102, 0, 0.6);
+        border-color: #FF6600;
+      }
 
-<header style="padding-bottom: 0px;padding-top: 0px;border-bottom-width: 5px;border-right-width: 5px;">
-  <img src="./FPT_Train_logo.svg_2.png" style"size" alt="Logo" style="size = 310;padding-left: 20px;">
-  <div style="
+      #sectionHoSoTau {
+        position: relative;
+      }
+
+      #sectionHoSoTau .controls {
+        position: sticky;
+        top: 49px;
+        /* adjust if your h1 is taller */
+        background: white;
+        z-index: 90;
+        padding: 10px 0;
+      }
+
+      #trainTable thead {
+        position: sticky;
+        top: 0px;
+        /* h1 height + controls height */
+        background: white;
+        z-index: 80;
+      }
+
+      .collapsible-container {
+        margin: 30px auto;
+        padding: 15px;
+        width: 200px;
+        background: #fff;
+        border: 2px dashed #ccc;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+      }
+
+      .toggle-form-btn {
+        width: 100%;
+        background: #034ea2;
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        font-size: 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        margin-bottom: 15px;
+      }
+
+      .toggle-form-btn:hover {
+        background: #007fd0;
+      }
+
+      #settingsForm {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        transition: max-height 0.3s ease, opacity 0.3s ease;
+        overflow: hidden;
+        opacity: 1;
+      }
+
+      #settingsForm.hidden {
+        display: none;
+      }
+
+      #settingsForm input[type="number"] {
+        padding: 8px;
+        font-size: 14px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+      }
+
+      #settingsForm button[type="submit"] {
+        background: #FF6600;
+        color: white;
+        border: none;
+        padding: 10px;
+        font-size: 15px;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+
+      #settingsForm button[type="submit"]:hover {
+        background: #e65c00;
+      }
+    </style>
+    <!-- SheetJS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- jsPDF and html2canvas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- docx -->
+    <script src="https://unpkg.com/docx@7.1.0/build/index.js"></script>
+  </head>
+  <body>
+    <header style="padding-bottom: 0px;padding-top: 0px;border-bottom-width: 5px;border-right-width: 5px;">
+      <img src="./a.png" style"size" alt="Logo" style="size = 310;padding-left: 20px;">
+      <div style="
     padding-left: 40px;
 ">
-    <div class="banner" style="
+        <div class="banner" style="
     padding-bottom: 10px;">ĐƯỜNG SẮT VIỆT NAM</div>
-  	<div class="banner" style="font-size: 22px;">Hệ Thống Giám Sát Và Điều Khiển Giao Cắt Đường Sắt Thông Minh</div>
-  </div>  
-	<img src="./OIP-removebg-preview.png" style="padding-right: 0px; height: 100px; transform: scaleX(-1); padding-left: 20px;">
-</header>
-
-<div class="nav-bar">
-  <button>Thông Tin Tàu</button>
-  <button>Phân tích dữ liệu</button>
-  <button>Bảng Điều Khiển</button>
-</div>
-
-<div id="sectionHoSoTau">
-  <h1 style="
+        <div class="banner" style="font-size: 22px;">Hệ Thống Giám Sát Và Điều Khiển Giao Cắt Đường Sắt Thông Minh</div>
+      </div>
+      <img src="./OIP-removebg-preview.png" style="padding-right: 0px; height: 100px; transform: scaleX(-1); padding-left: 20px;">
+    </header>
+    <div class="nav-bar">
+      <button>Thông Tin Tàu</button>
+      <button>Phân tích dữ liệu</button>
+      <button>Bảng Điều Khiển</button>
+    </div>
+    <div id="sectionHoSoTau">
+      <h1 style="
     padding-left: 80px;
     font-size: 25px;
     padding-top: 10px;
     padding-bottom: 10px;
 ">Thông Tin Tàu</h1>
-
-  <div class="controls">
-    <input type="text" id="searchInput" placeholder="Search..." />
-    <select id="filterTenTau">
-      <option value="">Tất Cả Tên Tàu</option>
-    </select>
-    <select id="filterTuyen">
-      <option value="">Tất Cả Tuyến</option>
-    </select>
-    <select id="speedUnit">
-      <option value="kmh">Vận Tốc: km/giờ</option>
-      <option value="mh">Vận Tốc: m/giờ</option>
-      <option value="ms">Vận Tốc: m/giây</option>
-      <option value="cms">Vận Tốc: cm/giây</option>
-    </select>
-    <input type="date" id="dateFrom" />
-    <input type="date" id="dateTo" />
-    <input type="time" id="timeFrom" />
-    <input type="time" id="timeTo" />
-
-    <button id="exportExcel">Xuất file Excel</button>
-    <button id="exportPDF">Xuất file PDF</button>
-	<button id="exportDOCX">Xuất file Báo cáo</button>
-  </div>
-
-  <table id="trainTable">
-    <thead>
-      <tr>
-        <th data-key="STT">STT</th>
-        <th data-key="Tên Tàu">Tên Tàu</th>
-        <th data-key="Tuyến">Tuyến</th>
-        <th data-key="Trạm">Trạm</th>
-        <th data-key="Vận Tốc">Vận Tốc</th>
-        <th>Ngày Đến</th>
-        <th>Giờ Đến</th>
-        <th>Ngày Rời</th>
-        <th>Giờ Rời</th>
-        <th data-key="Trạng Thái">Trạng Thái</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-</div>
-
-<div id="sectionPhanTich" style="display:none;">
-  <h1 style="
+      <div class="controls">
+        <input type="text" id="searchInput" placeholder="Search..." />
+        <select id="filterTenTau">
+          <option value="">Tất Cả Tên Tàu</option>
+        </select>
+        <select id="filterTuyen">
+          <option value="">Tất Cả Tuyến</option>
+        </select>
+        <select id="speedUnit">
+          <option value="kmh">Vận Tốc: km/giờ</option>
+          <option value="mh">Vận Tốc: m/giờ</option>
+          <option value="ms">Vận Tốc: m/giây</option>
+          <option value="cms">Vận Tốc: cm/giây</option>
+        </select>
+        <input type="date" id="dateFrom" />
+        <input type="date" id="dateTo" />
+        <input type="time" id="timeFrom" />
+        <input type="time" id="timeTo" />
+        <button id="exportExcel">Xuất file Excel</button>
+        <button id="exportPDF">Xuất file PDF</button>
+        <button id="exportDOCX">Xuất file Báo cáo</button>
+      </div>
+      <table id="trainTable">
+        <thead>
+          <tr>
+            <th data-key="STT">STT</th>
+            <th data-key="Tên Tàu">Tên Tàu</th>
+            <th data-key="Tuyến">Tuyến</th>
+            <th data-key="Trạm">Trạm</th>
+            <th data-key="Vận Tốc">Vận Tốc</th>
+            <th>Ngày Đến</th>
+            <th>Giờ Đến</th>
+            <th>Ngày Rời</th>
+            <th>Giờ Rời</th>
+            <th data-key="Trạng Thái">Trạng Thái</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div id="sectionPhanTich" style="display:none;">
+      <h1 style="
     padding-left: 80px;
     font-size: 25px;
     padding-top: 10px;
     padding-bottom: 10px;
 ">Phân Tích Dữ Liệu</h1>
-  <div style="width:90%; margin:auto;">
-    <h3>1. Tốc Độ Trung Bình Mỗi Tàu</h3>
-    <canvas id="avgSpeedChart" height="150"></canvas>
-
-    <h3 style="margin-top:40px;">2. Số Chuyến Mỗi Tàu</h3>
-    <canvas id="tripCountChart" height="150"></canvas>
-
-    <h3 style="margin-top:40px;">3. Tốc Độ Trung Bình Mỗi Ngày</h3>
-    <canvas id="speedPerDayChart" height="150"></canvas>
-  </div>
-</div>
-
-<div id="sectionBangDieuKhien" style="display:none;">
-  <h1 style="
+      <div style="width:90%; margin:auto;">
+        <h3>1. Tốc Độ Trung Bình Mỗi Tàu</h3>
+        <canvas id="avgSpeedChart" height="150"></canvas>
+        <h3 style="margin-top:40px;">2. Số Chuyến Mỗi Tàu</h3>
+        <canvas id="tripCountChart" height="150"></canvas>
+        <h3 style="margin-top:40px;">3. Tốc Độ Trung Bình Mỗi Ngày</h3>
+        <canvas id="speedPerDayChart" height="150"></canvas>
+      </div>
+    </div>
+    <div id="sectionBangDieuKhien" style="display:none;">
+      <h1 style="
     padding-left: 80px;
     font-size: 25px;
     padding-top: 10px;
     padding-bottom: 10px;
 ">Bảng Điều Khiển</h1>
-<div style="display: flex;flex-direction: row;margin-right: 200px;margin-left: 200px;">
-  <div class="dashboard-controls">
-    <div style="display: flex; flex-direction: column; align-items: flex-end; padding: 20px;">
-      <div style="padding-left: 20px; padding-bottom: 20px; padding-top: 20px; padding-right: 100px;">
-        <div>
-          <span>Trạng thái barrier</span>
-    	    <span id="servoStateLabel"></span>
-          <img id="servoSatateLabelImg" src="./Barrier Open.png" width="100" height="100">
-    	  </div>
-        <div>
-    	    <span>Điều khiển barrier</span>
-    	    <button id="servoToggle">Đang tải trạng thái...</button>
-    	  </div>
+      <div style="display: flex;flex-direction: row;margin-right: 200px;margin-left: 200px;">
+        <div class="dashboard-controls">
+          <div style="display: flex; flex-direction: column; align-items: flex-end; padding: 20px;">
+            <div style="padding-left: 20px; padding-bottom: 20px; padding-top: 20px; padding-right: 100px;">
+              <div>
+                <span>Trạng thái barrier</span>
+                <span id="servoStateLabel"></span>
+                <img id="servoSatateLabelImg" src="./Barrier Open.png" width="100" height="100">
+              </div>
+              <div>
+                <span>Điều khiển barrier</span>
+                <button id="servoToggle">Đang tải trạng thái...</button>
+              </div>
+            </div>
+            <!-- <div style=" padding-left: 100px; padding-bottom: 20px; padding-top: 20px; padding-right: 20px;"><div><span>Trạng thái hệ thống tự động</span><span id="autoStateLabel"></span></div><div><span>Điều khiển hệ thống tự động</span><button id="autoToggle">Đang tải trạng thái...</button></div></div> -->
+          </div>
+        </div>
+        <div class="dashboard-controls">
+          <div style=" padding-left: 100px; padding-bottom: 20px; padding-top: 20px; padding-right: 20px;" class="dashboard-controls">
+            <div>
+              <span>Trạng thái hệ thống</span>
+              <span id="autoStateLabel"></span>
+              <img id="autoSatateLabelImg" src="./Automation.gif" width="100" height="100">
+            </div>
+            <div>
+              <span>Điều khiển hệ thống</span>
+              <button id="autoToggle">Đang tải trạng thái...</button>
+            </div>
+          </div>
+          <div class="collapsible-container">
+            <button class="toggle-form-btn">Cài đặt</button>
+            <form id="settingsForm" class="hidden">
+              <label for="distance">Khoảng cách K1 -> K2 (m):</label>
+              <input type="number" id="distance" name="distance" placeholder="30" required>
+              <label for="delay1">Cảnh báo sớm (s):</label>
+              <input type="number" id="delay1" name="delay1" placeholder="20" required>
+              <label for="delay2">Đóng barrier trước (s):</label>
+              <input type="number" id="delay2" name="delay2" placeholder="10" required>
+              <button type="submit">Lưu</button>
+            </form>
+          </div>
+        </div>
       </div>
-      <!-- <div style=" padding-left: 100px; padding-bottom: 20px; padding-top: 20px; padding-right: 20px;">
-        <div>
-          <span>Trạng thái hệ thống tự động</span>
-    	    <span id="autoStateLabel"></span>
-    	  </div>
-        <div>
-    	    <span>Điều khiển hệ thống tự động</span>
-    	    <button id="autoToggle">Đang tải trạng thái...</button>
-    	  </div>
-      </div> -->
     </div>
-  </div>
-  <div class="dashboard-controls">
-    <div style=" padding-left: 100px; padding-bottom: 20px; padding-top: 20px; padding-right: 20px;" class="dashboard-controls">
-        <div>
-          <span>Trạng thái hệ thống</span>
-    	  <span id="autoStateLabel"></span>
-    	</div>
-        <div>
-    	  <span>Điều khiển hệ thống</span>
-    	  <button id="autoToggle">Đang tải trạng thái...</button>
-    	</div>
-    </div>
-      <div class="collapsible-container">
-        <button class="toggle-form-btn">Cài đặt</button>
-        <form id="settingsForm" class="hidden">
-          <label for="distance">Khoảng cách (m):</label>
-          <input type="number" id="distance" name="distance" placeholder="30" required>
-      
-          <label for="delay1">Thời gian cảnh báo (s):</label>
-          <input type="number" id="delay1" name="delay1" placeholder="20" required>
-      
-          <label for="delay2">Thời gian đóng barrier (s):</label>
-          <input type="number" id="delay2" name="delay2" placeholder="10" required>
-      
-          <button type="submit">Lưu</button>
-        </form>
-      </div>
-  </div>
-</div>
-</div>
-
-<script defer>
-
-const navButtons = document.querySelectorAll(".nav-bar button");
-
-navButtons[0].classList.add("active-nav");
-
-const sections = {
-  "Thông Tin Tàu": "sectionHoSoTau",
-  "Phân tích dữ liệu": "sectionPhanTich",
-  "Bảng Điều Khiển": "sectionBangDieuKhien"
-};
-
-navButtons.forEach(button => {
-  button.addEventListener("click", () => {
-    Object.values(sections).forEach(id => {
-      document.getElementById(id).style.display = "none";
-    });
-    const sectionId = sections[button.textContent.trim()];
-    if (sectionId) {
-      const section = document.getElementById(sectionId);
-      section.style.opacity = 0;
-      section.style.display = "block";
-      setTimeout(() => section.style.opacity = 1, 10);
-    }
-    navButtons.forEach(btn => btn.classList.remove("active-nav"));
-    button.classList.add("active-nav");
-  });
-});
-
-const GAS_URL = "https://script.google.com/macros/s/AKfycbwGCqdZvb9hlHfwJUFRlfpgBfkXtdBSKRVxxUZX2MzYw4M-kTud7w9aK7Ilm_d0PXAoyQ/exec";
-let originalData = [];
-let currentFilteredData = [];
-let currentSort = { key: "", asc: true };
-let ws = null;
-
-function applySavedUnits() {
-  const savedSpeedUnit = localStorage.getItem("speedUnit");
-  if (savedSpeedUnit) document.getElementById("speedUnit").value = savedSpeedUnit;
-}
-
-function reapplyFiltersAndSort() {
-  filterAndSearch();
-  if (currentSort.key) {
-    sortBy(currentSort.key);
-  }
-}
-
-function hashColor(str) {
-	let hash = 5381;
-	for (let i = 0; i < str.length; i++) {
-		hash = (hash * 33) ^ str.charCodeAt(i);
-	}
-	const hue = Math.abs(hash) % 360;
-	return `hsl(${hue}, 70%, 50%)`;
-}
-
-async function fetchDataAndRender() {
-  try {
-    const res = await fetch(GAS_URL + "?t=" + Date.now());
-    const json = await res.json();
-    if (json.status === "success") {
-      originalData = json.data;
-      currentFilteredData = originalData;
-      populateFilters();
-      reapplyFiltersAndSort();
-      renderCharts();
-    }
-  } catch (err) {
-    console.error("Error fetching train data:", err);
-  }
-}
-
-function populateFilters() {
-  const tenTauSelect = document.getElementById("filterTenTau");
-  const tuyenSelect = document.getElementById("filterTuyen");
-
-  // Save the currently selected values
-  const savedTenTau = tenTauSelect.value;
-  const savedTuyen = tuyenSelect.value;
-
-  const tenTauSet = new Set();
-  const tuyenSet = new Set();
-
-  originalData.forEach(item => {
-    tenTauSet.add(item["Tên Tàu"]);
-    tuyenSet.add(item["Tuyến"]);
-  });
-
-  // Rebuild options
-  tenTauSelect.innerHTML = `<option value="">Tất Cả Tên Tàu</option>`;
-  tuyenSelect.innerHTML = `<option value="">Tất Cả Tuyến</option>`;
-  tenTauSet.forEach(val => {
-    tenTauSelect.innerHTML += `<option value="${val}">${val}</option>`;
-  });
-  tuyenSet.forEach(val => {
-    tuyenSelect.innerHTML += `<option value="${val}">${val}</option>`;
-  });
-
-  // Restore the saved selections
-  tenTauSelect.value = savedTenTau;
-  tuyenSelect.value = savedTuyen;
-}
-
-function renderTable(data) {
-  currentFilteredData = data;
-  const tbody = document.querySelector("#trainTable tbody");
-  tbody.innerHTML = "";
-  const speedUnit = document.getElementById("speedUnit").value;
-
-  data.forEach(row => {
-    let speed = Number(row["Vận Tốc"]);
-    if (speedUnit === "ms") {
-      speed = speed.toFixed(2) + " m/s";
-    } else if (speedUnit === "mh") {
-      speed = (speed * 3600).toFixed(2) + " m/h";
-    } else if (speedUnit === "kmh") {
-      speed = (speed / 1000 * 3600).toFixed(2) + " km/h";
-    } else if (speedUnit === "cms") {
-      speed = (speed * 100).toFixed(2) + " cm/s";
-    }
-	  
-    const ngayDen = new Date(row["Ngày Đến"]).toLocaleDateString("vi-VN");
-    const gioDen = new Date(row["Giờ Đến"]).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', second: '2-digit'});
-    const ngayRoi = new Date(row["Ngày Rời"]).toLocaleDateString("vi-VN");
-    const gioRoi = new Date(row["Giờ Rời"]).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', second: '2-digit'});
-
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${row["STT"]}</td>
-      <td>${row["Tên Tàu"]}</td>
-      <td>${row["Tuyến"]}</td>
-      <td>${row["Trạm"]}</td>
-      <td>${speed}</td>
-      <td>${ngayDen}</td>
-      <td>${gioDen}</td>
-      <td>${ngayRoi}</td>
-      <td>${gioRoi}</td>
-      <td>${row["Trạng Thái"]}</td>
-    `;
-    // Apply fade-in animation with staggered delay
-    // tr.style.opacity = "0";
-    // tr.style.animation = "fadeIn 0.4s ease-out forwards";
-    // tr.style.animationDelay = `${row["STT"] * 0.01}s`;
-    tbody.appendChild(tr);
-  });
-}
-
-function filterAndSearch() {
-  const searchValue = document.getElementById("searchInput").value.toLowerCase();
-  const tenTauFilter = document.getElementById("filterTenTau").value;
-  const tuyenFilter = document.getElementById("filterTuyen").value;
-  const dateFromValue = document.getElementById("dateFrom").value;
-  const dateToValue = document.getElementById("dateTo").value;
-  const timeFromValue = document.getElementById("timeFrom").value;
-  const timeToValue = document.getElementById("timeTo").value;
-
-  const filtered = originalData.filter(item => {
-    const matchSearch = Object.values(item).some(val =>
-      String(val).toLowerCase().includes(searchValue)
-    );
-    const matchTenTau = !tenTauFilter || item["Tên Tàu"] === tenTauFilter;
-    const matchTuyen = !tuyenFilter || item["Tuyến"] === tuyenFilter;
-    let matchDateTime = true;
-
-    if (dateFromValue || dateToValue || timeFromValue || timeToValue) {
-      const date = new Date(item["Ngày Đến"]);
-      const time = new Date(item["Giờ Đến"]);
-      const combinedDateTime = new Date(
-        date.getFullYear(), date.getMonth(), date.getDate(),
-        time.getHours(), time.getMinutes(), time.getSeconds()
-      );
-      if (dateFromValue) {
-        const dateFrom = new Date(dateFromValue);
-        if (combinedDateTime < dateFrom) matchDateTime = false;
-      }
-      if (dateToValue) {
-        const dateTo = new Date(dateToValue);
-        dateTo.setHours(23,59,59,999);
-        if (combinedDateTime > dateTo) matchDateTime = false;
-      }
-      if (timeFromValue) {
-        const [h,m] = timeFromValue.split(":");
-        if (combinedDateTime.getHours() < +h || (combinedDateTime.getHours() === +h && combinedDateTime.getMinutes() < +m)) {
-          matchDateTime = false;
-        }
-      }
-      if (timeToValue) {
-        const [h,m] = timeToValue.split(":");
-        if (combinedDateTime.getHours() > +h || (combinedDateTime.getHours() === +h && combinedDateTime.getMinutes() > +m)) {
-          matchDateTime = false;
-        }
-      }
-    }
-    return matchSearch && matchTenTau && matchTuyen && matchDateTime;
-  });
-
-  renderTable(filtered);
-}
-
-function sortBy(key) {
-  const asc = currentSort.key === key ? !currentSort.asc : true;
-  currentSort = { key, asc };
-
-  const sorted = [...currentFilteredData].sort((a, b) => {
-    let valA = a[key];
-    let valB = b[key];
-    if (!isNaN(valA) && !isNaN(valB)) {
-      valA = Number(valA);
-      valB = Number(valB);
-    }
-    return asc ? (valA > valB ? 1 : -1) : (valA < valB ? 1 : -1);
-  });
-
-  renderTable(sorted);
-}
-  
-let servoState = null;
-let autoState = null;
-
-function setupWebSocket() {
-  ws = new WebSocket("wss://durable-chat-template.templates.workers.dev/parties/chat/FPTTrainWSS");
-  ws.onopen = () => {
-    console.log("WebSocket connected.");
-    ws.send("servo state sync");
-    ws.send("auto state sync");
-  };
-  ws.onmessage = (event) => {
-    console.log("WebSocket message received:", event.data);
-    if (event.data === "front-end update") {
-      fetchDataAndRender();
-    }
-    if (event.data.startsWith("servo is")) {
-      const parts = event.data.split(" ");
-      servoState = parseInt(parts[2], 10);
-      updateServoUI();
-    }
-    if (event.data.startsWith("auto is")) {
-      const parts = event.data.split(" ");
-      autoState = parseInt(parts[2], 10);
-      updateautoUI();
-    }
-  };
-  ws.onclose = () => {
-    console.warn("WebSocket disconnected. Reconnecting in 5s...");
-    setTimeout(setupWebSocket, 5000);
-  };
-  ws.onerror = (err) => {
-    console.error("WebSocket error:", err);
-    ws.close();
-  };
-}
-
-function exportExcel() {
-  const ws_data = [
-    ["STT","Tên Tàu","Tuyến","Trạm","Vận Tốc","Ngày Đến","Giờ Đến","Ngày Rời","Giờ Rời","Trạng Thái"],
-    ...currentFilteredData.map(row => [
-      row["STT"],
-      row["Tên Tàu"],
-      row["Tuyến"],
-      row["Trạm"],
-      row["Vận Tốc"],
-      row["Ngày Đến"],
-      row["Giờ Đến"],
-      row["Ngày Rời"],
-      row["Giờ Rời"],
-      row["Trạng Thái"]
-    ])
-  ];
-  const wb = XLSX.utils.book_new();
-  const ws = XLSX.utils.aoa_to_sheet(ws_data);
-  XLSX.utils.book_append_sheet(wb, ws, "Data");
-  XLSX.writeFile(wb, "TrainData.xlsx");
-}
-
-async function exportPDF() {
-  const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF('l', 'pt', 'a4');
-  const table = document.querySelector("#trainTable");
-  await html2canvas(table).then(canvas => {
-    const imgData = canvas.toDataURL('image/png');
-    const imgProps= pdf.getImageProperties(imgData);
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-    pdf.save("TrainData.pdf");
-  });
-}
-
-const servoToggleButton = document.getElementById("servoToggle");
-const servoStateLabel = document.getElementById("servoStateLabel");
-
-servoToggleButton.addEventListener("click", () => {
-  if (ws && ws.readyState === WebSocket.OPEN && servoState !== null) {
-    if (servoState === 0) {
-      ws.send("servo close");
-    } else {
-      ws.send("servo open");
-    }
-  }
-});
-
-async function exportReportDOCX(tableData, filterTuyenValue, filterTenTauValue, dateFromValue, dateToValue, timeFromValue, timeToValue) {
-  const {
-    Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
-    WidthType, AlignmentType, BorderStyle, ShadingType
-  } = docx;
-
-  // 📌 Formatters
-  const formatDate = (val) => {
-    if (!val) return "";
-    const d = new Date(val);
-    if (isNaN(d)) return "";
-    return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
-  };
-
-  const formatTime = (val) => {
-    if (!val) return "";
-    const d = new Date(val);
-    if (isNaN(d)) return "";
-    return `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}:${String(d.getSeconds()).padStart(2,"0")}`;
-  };
-
-  // 📌 Current date for header
-  const now = new Date();
-  const ngay = now.getDate();
-  const thang = now.getMonth() + 1;
-  const nam = now.getFullYear();
-
-  // === HEADER ===
-  const header1 = new Paragraph({
-    children: [
-      new TextRun({ text: "TRƯỜNG CAO ĐẲNG GIAO THÔNG VẬN TẢI", bold: true, size: 22 }),
-      new TextRun({ text: "		CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM", bold: true, size: 22 })
-    ],
-    spacing: { after: 200 }
-  });
-
-  const header2 = new Paragraph({
-    children: [
-      new TextRun({ text: "KHOA KỸ THUẬT ĐIỆN - ĐIỆN TỬ", bold: true, size: 20 }),
-      new TextRun({ text: "							Độc lập - Tự do - Hạnh phúc", bold: true, size: 20 })
-    ],
-    spacing: { after: 200 }
-  });
-
-  const dateLine = new Paragraph({
-    alignment: AlignmentType.RIGHT,
-    children: [
-      new TextRun({
-        text: `TP.HCM, ngày ${ngay} tháng ${thang} năm ${nam}`,
-        italics: true,
-        size: 20
-      })
-    ],
-    spacing: { after: 200 }
-  });
-
-  const title = new Paragraph({
-    alignment: AlignmentType.CENTER,
-    children: [new TextRun({ text: "BẢNG THÔNG TIN TÀU CHẠY", bold: true, size: 32 })],
-    spacing: { after: 300 }
-  });
-
-  // === FILTER INFO ===
-  const infoFields = [
-    { label: "Tuyến", value: filterTuyenValue },
-    { label: "Tên tàu", value: filterTenTauValue },
-    { label: "Từ ngày", value: dateFromValue },
-    { label: "Đến ngày", value: dateToValue },
-    { label: "Từ giờ", value: timeFromValue },
-    { label: "Đến giờ", value: timeToValue }
-  ];
-
-  const infoParagraphs = infoFields
-    .filter(f => f.value)
-    .map(f => new Paragraph({
-      text: `${f.label}: ${f.value}`,
-      spacing: { after: 100 },
-      size: 20
-    }));
-
-  // === TABLE ===
-  let table = null;
-  if (tableData && tableData.length > 0) {
-    const keys = Object.keys(tableData[0]);
-    const colWidth = Math.floor(100 / keys.length); // spread evenly
-
-    const headerRow = new TableRow({
-      children: keys.map(k =>
-        new TableCell({
-          children: [new Paragraph({ text: k, bold: true, alignment: AlignmentType.CENTER, size: 20 })],
-          shading: { fill: "FF6600" },
-          width: { size: colWidth, type: WidthType.PERCENTAGE },
-          margins: { top: 200, bottom: 200, left: 200, right: 200 }
-        })
-      )
-    });
-
-    const dataRows = tableData.map((rowObj, idx) =>
-      new TableRow({
-        children: keys.map(k => {
-          let val = rowObj[k];
-
-          // ---- AUTO FORMAT DATE/TIME ----
-          if (k.includes("Giờ")) val = formatTime(val);
-          if (k.includes("Ngày")) val = formatDate(val);
-
-          return new TableCell({
-            children: [new Paragraph({ text: String(val ?? ""), size: 20 })],
-            shading: { fill: idx % 2 === 0 ? "FFFFFF" : "FFF4E6" },
-            width: { size: colWidth, type: WidthType.PERCENTAGE },
-            margins: { top: 200, bottom: 200, left: 200, right: 200 }
+    <script defer>
+      const navButtons = document.querySelectorAll(".nav-bar button");
+      navButtons[0].classList.add("active-nav");
+      const sections = {
+        "Thông Tin Tàu": "sectionHoSoTau",
+        "Phân tích dữ liệu": "sectionPhanTich",
+        "Bảng Điều Khiển": "sectionBangDieuKhien"
+      };
+      navButtons.forEach(button => {
+        button.addEventListener("click", () => {
+          Object.values(sections).forEach(id => {
+            document.getElementById(id).style.display = "none";
           });
-        })
-      })
-    );
+          const sectionId = sections[button.textContent.trim()];
+          if (sectionId) {
+            const section = document.getElementById(sectionId);
+            section.style.opacity = 0;
+            section.style.display = "block";
+            setTimeout(() => section.style.opacity = 1, 10);
+          }
+          navButtons.forEach(btn => btn.classList.remove("active-nav"));
+          button.classList.add("active-nav");
+        });
+      });
+      const GAS_URL = "https://script.google.com/macros/s/AKfycbziweULUcvboDYnWmFpxHqjC8Hcra7B3jG_5jX04AtTQW2h3ltqlsvzt0uIRdBS5mpi/exec";
+      let originalData = [];
+      let currentFilteredData = [];
+      let currentSort = {
+        key: "",
+        asc: true
+      };
+      let ws = null;
 
-    table = new Table({
-      rows: [headerRow, ...dataRows],
-      width: { size: 100, type: WidthType.PERCENTAGE },
-	  alignment: AlignmentType.CENTER
-    });
-  }
-
-  // === DOCUMENT ===
-  const doc = new Document({
-	  styles: {
-	    default: {
-	      document: {
-	        run: {
-	          font: "Times New Roman",
-	        },
-	        paragraph: {
-	          spacing: { line: 276 }   // optional: 1.15 line height
-	        }
-	      }
-	    }
-	  },
-    sections: [{
-		  properties: {
-	      page: {
-	        margin: {
-	          top: 720,     // 0.5 inch
-	          bottom: 720,  // 0.5 inch
-	          left: 720,    // 0.5 inch
-	          right: 720    // 0.5 inch
-	        }
-	      }
-	    },
-      children: [
-        header1, header2, dateLine, title,
-        ...infoParagraphs,
-        ...(table ? [table] : [])
-      ]
-    }]
-  });
-
-  const blob = await Packer.toBlob(doc);
-  const filename = `BaoCao_${(filterTenTauValue || 'Tau').replace(/\s+/g,'_')}.docx`;
-
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = filename;
-  link.click();
-}
-
-function updateServoUI() {
-  if (servoState === 0) {
-    servoToggleButton.textContent = "Hạ barrier";
-    servoToggleButton.style.backgroundColor = "#f37021";
-    servoStateLabel.textContent = "Mở";
-    servoStateLabel.style.backgroundColor = "#51b848";
-    document.getElementById("servoSatateLabelImg").src = "./Barrier Open.png"
-  } else if (servoState === 1) {
-    servoToggleButton.textContent = "Nâng barrier";
-    servoToggleButton.style.backgroundColor = "#51b848";
-    servoStateLabel.textContent = "Đóng";
-    servoStateLabel.style.backgroundColor = "#f37021";
-    document.getElementById("servoSatateLabelImg").src = "./Barrier Close.png"
-  }
-}
-
-const autoToggleButton = document.getElementById("autoToggle");
-const autoStateLabel = document.getElementById("autoStateLabel");
-
-autoToggleButton.addEventListener("click", () => {
-  if (ws && ws.readyState === WebSocket.OPEN && autoState !== null) {
-    if (autoState === 0) {
-      ws.send("auto off");
-    } 
-    if (autoState === 1) {
-      ws.send("auto on");
-    }
-  }
-});
-  
-function updateautoUI() {
-  if (autoState === 0) {
-    autoToggleButton.textContent = "MANUAL";
-    autoToggleButton.style.backgroundColor = "#f37021";
-    autoStateLabel.textContent = "AUTO";
-    autoStateLabel.style.backgroundColor = "#51b848";
-  } else if (autoState === 1) {
-    autoToggleButton.textContent = "AUTO";
-    autoToggleButton.style.backgroundColor = "#51b848";
-    autoStateLabel.textContent = "MANUAL";
-    autoStateLabel.style.backgroundColor = "#f37021";
-  }
-}
-
-const toggleBtn = document.querySelector('.toggle-form-btn');
-const form = document.getElementById('settingsForm');
-
-toggleBtn.addEventListener('click', () => {
-  form.classList.toggle('hidden');
-});
-
-form.addEventListener('submit', (e) => {
-  e.preventDefault();
-  const distance = document.getElementById('distance').value;
-  const delay1 = document.getElementById('delay1').value;
-  const delay2 = document.getElementById('delay2').value;
-  
-  console.log("Submitted values:", { distance, delay1, delay2 });
-  
-	if (ws && ws.readyState === WebSocket.OPEN) {
-		ws.send("distance " + distance);
-		ws.send("delay1 " + delay1);
-		ws.send("delay2 " + delay2);
-	} else {
-		console.warn("WebSocket is not open.");
-	}
-});
-
-document.getElementById("searchInput").addEventListener("input", filterAndSearch);
-document.getElementById("filterTenTau").addEventListener("change", filterAndSearch);
-document.getElementById("filterTuyen").addEventListener("change", filterAndSearch);
-document.getElementById("speedUnit").addEventListener("change", () => {
-  localStorage.setItem("speedUnit", document.getElementById("speedUnit").value);
-  renderTable(currentFilteredData);
-});
-document.getElementById("dateFrom").addEventListener("change", filterAndSearch);
-document.getElementById("dateTo").addEventListener("change", filterAndSearch);
-document.getElementById("timeFrom").addEventListener("change", filterAndSearch);
-document.getElementById("timeTo").addEventListener("change", filterAndSearch);
-document.querySelectorAll("#trainTable th").forEach(th => {
-  th.addEventListener("click", () => sortBy(th.dataset.key));
-});
-document.getElementById("exportExcel").addEventListener("click", exportExcel);
-document.getElementById("exportPDF").addEventListener("click", exportPDF);
-document.getElementById("exportDOCX").addEventListener("click", () => {
-  // read real values from DOM at click-time
-  const filterTuyenValue = document.getElementById("filterTuyen").value;
-  const filterTenTauValue = document.getElementById("filterTenTau").value;
-  const dateFromValue = document.getElementById("dateFrom").value;
-  const dateToValue = document.getElementById("dateTo").value;
-  const timeFromValue = document.getElementById("timeFrom").value;
-  const timeToValue = document.getElementById("timeTo").value;
-
-  exportReportDOCX(
-    currentFilteredData,
-    filterTuyenValue,
-    filterTenTauValue,
-    dateFromValue,
-    dateToValue,
-    timeFromValue,
-    timeToValue
-  );
-});
-	
-let avgSpeedChartInstance = null;
-let tripCountChartInstance = null;
-let speedPerDayChartInstance = null;
-  
-const trainColorMap = {};
-
-function renderCharts() {
-  // Destroy old charts
-  if (avgSpeedChartInstance) avgSpeedChartInstance.destroy();
-  if (tripCountChartInstance) tripCountChartInstance.destroy();
-  if (speedPerDayChartInstance) speedPerDayChartInstance.destroy();
-
-  // --- 1. Average speed per train ---
-  const trainSpeeds = {};
-  const trainCounts = {};
-
-  originalData.forEach(item => {
-    const train = item["Tên Tàu"];
-    const speed = Number(item["Vận Tốc"]);
-    trainSpeeds[train] = (trainSpeeds[train] || 0) + speed;
-    trainCounts[train] = (trainCounts[train] || 0) + 1;
-  });
-
-  const trainNames = Object.keys(trainSpeeds);
-  const avgSpeeds = trainNames.map(name => (trainSpeeds[name]/trainCounts[name]).toFixed(2));
-  const globalAvgSpeed = (avgSpeeds.reduce((sum, val) => sum + parseFloat(val), 0) / avgSpeeds.length).toFixed(2);
-
-  const ctxAvgSpeed = document.getElementById('avgSpeedChart').getContext('2d');
-  avgSpeedChartInstance = new Chart(ctxAvgSpeed, {
-    type: 'bar',
-    data: {
-      labels: trainNames,
-      datasets: [{
-        label: 'Tốc Độ Trung Bình (km/h)',
-        data: avgSpeeds,
-        backgroundColor: trainNames.map(name => hashColor(name)),
-        barThickness: 20,
-        maxBarThickness: 20
-      },
-                 {
-        label: 'Tốc độ TB tất cả tàu',
-        type: 'line',
-        data: Array(avgSpeeds.length).fill(globalAvgSpeed),
-        borderColor: 'red',
-        borderWidth: 2,
-        fill: false,
-        pointRadius: 0
-      }]
-    },
-    options: {
-      responsive: true,
-      scales: {
-        y: { beginAtZero: true }
+      function applySavedUnits() {
+        const savedSpeedUnit = localStorage.getItem("speedUnit");
+        if (savedSpeedUnit) document.getElementById("speedUnit").value = savedSpeedUnit;
       }
-    }
-  });
 
-  // --- 2. Trip count per train ---
-  const tripCounts = trainCounts;
-  const globalTripAvg = (Object.values(tripCounts).reduce((a, b) => a + b, 0) / Object.values(tripCounts).length).toFixed(2);
-
-  const ctxTripCount = document.getElementById('tripCountChart').getContext('2d');
-  tripCountChartInstance = new Chart(ctxTripCount, {
-    type: 'bar',
-    data: {
-      labels: Object.keys(tripCounts),
-      datasets: [{
-        label: 'Số Chuyến',
-        data: Object.values(tripCounts),
-        backgroundColor: Object.keys(tripCounts).map(name => hashColor(name)),
-        barThickness: 20,
-        maxBarThickness: 20
-      },
-                 {
-        label: 'Số chuyến TB tất cả tàu',
-        type: 'line',
-        data: Array(Object.keys(tripCounts).length).fill(globalTripAvg),
-        borderColor: 'red',
-        borderWidth: 2,
-        fill: false,
-        pointRadius: 0
-      }]
-    },
-    options: {
-      responsive: true,
-      scales: {
-        y: { beginAtZero: true }
+      function reapplyFiltersAndSort() {
+        filterAndSearch();
+        if (currentSort.key) {
+          sortBy(currentSort.key);
+        }
       }
-    }
-  });
 
-  // --- 3. Average speed per day per train ---
-  const trainDateSpeedMap = {};
-
-  originalData.forEach(item => {
-    const train = item["Tên Tàu"];
-    const date = new Date(item["Ngày Đến"]).toISOString().split("T")[0];
-    const speed = Number(item["Vận Tốc"]);
-    const key = train + "_" + date;
-    if (!trainDateSpeedMap[key]) {
-      trainDateSpeedMap[key] = { sum: 0, count: 0 };
-    }
-    trainDateSpeedMap[key].sum += speed;
-    trainDateSpeedMap[key].count += 1;
-  });
-
-  // Build datasets per train
-  const trainDateGroups = {};
-  Object.keys(trainDateSpeedMap).forEach(key => {
-    const [train, date] = key.split("_");
-    if (!trainDateGroups[train]) trainDateGroups[train] = {};
-    trainDateGroups[train][date] = (trainDateSpeedMap[key].sum / trainDateSpeedMap[key].count).toFixed(2);
-  });
-
-  // Collect all unique dates
-  const allDatesSet = new Set();
-  Object.values(trainDateGroups).forEach(obj => {
-    Object.keys(obj).forEach(date => allDatesSet.add(date));
-  });
-  const allDates = Array.from(allDatesSet).sort();
-
-  const datasets = Object.keys(trainDateGroups).map(train => {
-    if (!trainColorMap[train]) {
-      trainColorMap[train] = hashColor(train);
-    }
-    return {
-      label: train,
-      data: allDates.map(date => trainDateGroups[train][date] || null),
-      fill: false,
-      borderColor: trainColorMap[train],
-      tension: 0.1
-    };
-  });
-
-  const ctxSpeedPerDay = document.getElementById('speedPerDayChart').getContext('2d');
-  speedPerDayChartInstance = new Chart(ctxSpeedPerDay, {
-    type: 'line',
-    data: {
-      labels: allDates,
-      datasets: datasets
-    },
-    options: {
-      responsive: true,
-      scales: {
-        y: { beginAtZero: true }
+      function hashColor(str) {
+        let hash = 5381;
+        for (let i = 0; i < str.length; i++) {
+          hash = (hash * 33) ^ str.charCodeAt(i);
+        }
+        const hue = Math.abs(hash) % 360;
+        return `hsl(${hue}, 70%, 50%)`;
       }
-    }
-  });
-  // Calculate average of all values (excluding nulls)
-  let totalSum = 0;
-  let totalCount = 0;
-  Object.values(trainDateGroups).forEach(trainData => {
-    Object.values(trainData).forEach(val => {
-      if (val !== null && val !== undefined) {
-        totalSum += parseFloat(val);
-        totalCount++;
+      async function fetchDataAndRender() {
+        try {
+          const res = await fetch(GAS_URL + "?t=" + Date.now());
+          const json = await res.json();
+          if (json.status === "success") {
+            originalData = json.data;
+            currentFilteredData = originalData;
+            populateFilters();
+            reapplyFiltersAndSort();
+            renderCharts();
+          }
+        } catch (err) {
+          console.error("Error fetching train data:", err);
+        }
       }
-    });
-  });
-  const globalDailyAvg = (totalSum / totalCount).toFixed(2);
-  
-  // Add red average line
-  datasets.push({
-    label: 'Tốc độ TB tất cả tàu mỗi ngày',
-    data: Array(allDates.length).fill(globalDailyAvg),
-    borderColor: 'red',
-    borderWidth: 2,
-    fill: false,
-    pointRadius: 0,
-    borderDash: [5, 5]
-  });
-}
 
-applySavedUnits();
-fetchDataAndRender();
-setupWebSocket();
-//setInterval(fetchDataAndRender, 60000);
-console.log("docx loaded?", window.docx);
-</script>
+      function populateFilters() {
+        const tenTauSelect = document.getElementById("filterTenTau");
+        const tuyenSelect = document.getElementById("filterTuyen");
+        // Save the currently selected values
+        const savedTenTau = tenTauSelect.value;
+        const savedTuyen = tuyenSelect.value;
+        const tenTauSet = new Set();
+        const tuyenSet = new Set();
+        originalData.forEach(item => {
+          tenTauSet.add(item["Tên Tàu"]);
+          tuyenSet.add(item["Tuyến"]);
+        });
+        // Rebuild options
+        tenTauSelect.innerHTML = `
+											<option value="">Tất Cả Tên Tàu</option>`;
+        tuyenSelect.innerHTML = `
+											<option value="">Tất Cả Tuyến</option>`;
+        tenTauSet.forEach(val => {
+          tenTauSelect.innerHTML += `
+											<option value="${val}">${val}</option>`;
+        });
+        tuyenSet.forEach(val => {
+          tuyenSelect.innerHTML += `
+											<option value="${val}">${val}</option>`;
+        });
+        // Restore the saved selections
+        tenTauSelect.value = savedTenTau;
+        tuyenSelect.value = savedTuyen;
+      }
 
-</body>
+      function isValidDate(d) {
+        return d instanceof Date && !isNaN(d);
+      }
+
+      function parseDateString(str) {
+        // Try direct parse first
+        let d = new Date(str);
+        if (isValidDate(d)) return d;
+        // Try DD/MM/YYYY format manually
+        const parts = str.split("/");
+        if (parts.length === 3) {
+          const day = parseInt(parts[0]);
+          const month = parseInt(parts[1]) - 1; // JS months 0–11
+          const year = parseInt(parts[2]);
+          d = new Date(year, month, day);
+          if (isValidDate(d)) return d;
+        }
+        return null; // invalid
+      }
+
+      function parseTimeString(excelTimeStr) {
+        // Split by space and return the part containing HH:MM:SS
+        const parts = excelTimeStr.split(" ");
+        for (const p of parts) {
+          if (/^\d{2}:\d{2}:\d{2}$/.test(p)) {
+            return p;
+          }
+        }
+        return null;
+      }
+
+      function parseTimeOnly(excelTimeStr) {
+        const date = new Date(excelTimeStr);
+        if (isNaN(date)) return "⚠ Invalid";
+        // extract hours, minutes, seconds ignoring date and timezone
+        const h = date.getHours().toString().padStart(2, '0');
+        const m = date.getMinutes().toString().padStart(2, '0');
+        const s = date.getSeconds().toString().padStart(2, '0');
+        return `${h}:${m}:${s}`;
+      }
+
+      function renderTable(data) {
+        currentFilteredData = data;
+        const tbody = document.querySelector("#trainTable tbody");
+        tbody.innerHTML = "";
+        const speedUnit = document.getElementById("speedUnit").value;
+        data.forEach(row => {
+          let speed = Number(row["Vận Tốc"]);
+          if (speedUnit === "ms") speed = speed.toFixed(2) + " m/s";
+          else if (speedUnit === "mh") speed = (speed * 3600).toFixed(2) + " m/h";
+          else if (speedUnit === "kmh") speed = (speed / 1000 * 3600).toFixed(2) + " km/h";
+          else if (speedUnit === "cms") speed = (speed * 100).toFixed(2) + " cm/s";
+          // --- DATE + TIME VALIDATION ----
+          const ngayDenDate = parseDateString(row["Ngày Đến"]);
+          const gioDenDate = parseTimeString(row["Giờ Đến"]);
+          const ngayRoiDate = parseDateString(row["Ngày Rời"]);
+          const gioRoiDate = parseTimeString(row["Giờ Rời"]);
+          // Format OR fallback
+          const ngayDen = ngayDenDate ? ngayDenDate.toLocaleDateString("vi-VN") : "⚠ Invalid";
+          const gioDen = gioDenDate ? gioDenDate : "⚠ Invalid";
+          const ngayRoi = ngayRoiDate ? ngayRoiDate.toLocaleDateString("vi-VN") : "⚠ Invalid";
+          const gioRoi = gioRoiDate ? gioRoiDate : "⚠ Invalid";
+          if (!ngayDenDate || !gioDenDate || !ngayRoiDate || !gioRoiDate) {
+            console.warn("Invalid date or time format in row:", row);
+          }
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+      
+											<td>${row["STT"]}</td>
+											<td>${row["Tên Tàu"]}</td>
+											<td>${row["Tuyến"]}</td>
+											<td>${row["Trạm"]}</td>
+											<td>${speed}</td>
+											<td>${ngayDen}</td>
+											<td>${gioDen}</td>
+											<td>${ngayRoi}</td>
+											<td>${gioRoi}</td>
+											<td>${row["Trạng Thái"]}</td>
+    `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      function filterAndSearch() {
+        const searchValue = document.getElementById("searchInput").value.toLowerCase();
+        const tenTauFilter = document.getElementById("filterTenTau").value;
+        const tuyenFilter = document.getElementById("filterTuyen").value;
+        const dateFromValue = document.getElementById("dateFrom").value;
+        const dateToValue = document.getElementById("dateTo").value;
+        const timeFromValue = document.getElementById("timeFrom").value;
+        const timeToValue = document.getElementById("timeTo").value;
+        const filtered = originalData.filter(item => {
+          const matchSearch = Object.values(item).some(val => String(val).toLowerCase().includes(searchValue));
+          const matchTenTau = !tenTauFilter || item["Tên Tàu"] === tenTauFilter;
+          const matchTuyen = !tuyenFilter || item["Tuyến"] === tuyenFilter;
+          let matchDateTime = true;
+          if (dateFromValue || dateToValue || timeFromValue || timeToValue) {
+            const date = new Date(item["Ngày Đến"]);
+            const time = new Date(item["Giờ Đến"]);
+            const combinedDateTime = new Date(date.getFullYear(), date.getMonth(), date.getDate(), time.getHours(), time.getMinutes(), time.getSeconds());
+            if (dateFromValue) {
+              const dateFrom = new Date(dateFromValue);
+              if (combinedDateTime < dateFrom) matchDateTime = false;
+            }
+            if (dateToValue) {
+              const dateTo = new Date(dateToValue);
+              dateTo.setHours(23, 59, 59, 999);
+              if (combinedDateTime > dateTo) matchDateTime = false;
+            }
+            if (timeFromValue) {
+              const [h, m] = timeFromValue.split(":");
+              if (combinedDateTime.getHours() < +h || (combinedDateTime.getHours() === +h && combinedDateTime.getMinutes() < +m)) {
+                matchDateTime = false;
+              }
+            }
+            if (timeToValue) {
+              const [h, m] = timeToValue.split(":");
+              if (combinedDateTime.getHours() > +h || (combinedDateTime.getHours() === +h && combinedDateTime.getMinutes() > +m)) {
+                matchDateTime = false;
+              }
+            }
+          }
+          return matchSearch && matchTenTau && matchTuyen && matchDateTime;
+        });
+        renderTable(filtered);
+      }
+
+      function sortBy(key) {
+        const asc = currentSort.key === key ? !currentSort.asc : true;
+        currentSort = {
+          key,
+          asc
+        };
+        const sorted = [...currentFilteredData].sort((a, b) => {
+          let valA = a[key];
+          let valB = b[key];
+          if (!isNaN(valA) && !isNaN(valB)) {
+            valA = Number(valA);
+            valB = Number(valB);
+          }
+          return asc ? (valA > valB ? 1 : -1) : (valA < valB ? 1 : -1);
+        });
+        renderTable(sorted);
+      }
+      let servoState = null;
+      let autoState = null;
+
+      function sendJSON(obj) {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          try {
+            ws.send(JSON.stringify(obj));
+          } catch (e) {
+            console.error("Failed to send JSON over WS:", e, obj);
+          }
+        } else {
+          console.warn("WebSocket not open - cannot send:", obj);
+        }
+      }
+
+      function setupWebSocket() {
+        ws = new WebSocket("wss://durable-chat-template.templates.workers.dev/parties/chat/FPTTrainWSS");
+        ws.onopen = () => {
+          console.log("WebSocket connected.");
+          // Ask K2 for current barrier & auto state
+          sendJSON({
+            command: "barrier_state_request"
+          });
+          sendJSON({
+            command: "auto_state_request"
+          });
+          // If you want to request a dashboard refresh immediately:
+          // sendJSON({ command: "request_update_data" }); // optional, only if server understands it
+        };
+        ws.onmessage = async (event) => {
+          // Handle Blob payloads as text
+          let text;
+          try {
+            if (typeof event.data === "string") {
+              text = event.data;
+            } else if (event.data instanceof Blob && event.data.text) {
+              text = await event.data.text();
+            } else {
+              // Fallback: try toString
+              text = String(event.data);
+            }
+          } catch (e) {
+            console.error("Error reading WS message:", e);
+            return;
+          }
+          // Try JSON parse first (new protocol)
+          let parsed = null;
+          try {
+            parsed = JSON.parse(text);
+          } catch (e) {
+            parsed = null;
+          }
+          if (parsed && parsed.command) {
+            const cmd = parsed.command;
+            console.log("WS JSON command:", cmd, parsed);
+            switch (cmd) {
+              case "barrier_state_response":
+              case "barrier_state_update": {
+                // Expect parsed.state === "OPEN" | "CLOSED"
+                const state = (parsed.state || "").toUpperCase();
+                if (state === "OPEN") servoState = 0;
+                else if (state === "CLOSED") servoState = 1;
+                else {
+                  console.warn("Unknown barrier state from WS:", parsed.state);
+                }
+                updateServoUI();
+                break;
+              }
+              case "auto_state_response": {
+                // Expect parsed.state = true/false
+                const st = !!parsed.state;
+                autoState = st ? "True" : "False"; // keep old UI numeric convention
+                updateautoUI();
+                break;
+              }
+              case "update_data": {
+                // Server telling front-end to refresh
+                console.log("WS -> update_data: refreshing data");
+                if (typeof fetchDataAndRender === "function") fetchDataAndRender();
+                break;
+              }
+              case "update_warning": {
+                // Optional: server sent new warning config; we can log or update UI if you have inputs bound.
+                console.log("WS -> update_warning:", parsed);
+                // If you want to reflect these values in inputs:
+                if (parsed.distance !== undefined) document.getElementById('distance').value = parsed.distance;
+                if (parsed.warning1 !== undefined) document.getElementById('delay1').value = parsed.warning1;
+                if (parsed.warning2 !== undefined) document.getElementById('delay2').value = parsed.warning2;
+                break;
+              }
+              // add other JSON commands from K2 as needed...
+              default:
+                console.log("Unhandled WS JSON command:", parsed);
+            }
+            return; // stop, since we handled JSON
+          }
+          // --- Fallback: legacy plain-text handlers (backwards compatibility) ---
+          console.log("WebSocket message received (text):", text);
+          if (text === "update_data") {
+            if (typeof fetchDataAndRender === "function") fetchDataAndRender();
+          } else if (text.startsWith("servo is")) {
+            const parts = text.split(" ");
+            const val = parseInt(parts[2], 10);
+            if (!isNaN(val)) {
+              servoState = val;
+              updateServoUI();
+            }
+          } else if (text.startsWith("auto is")) {
+            const parts = text.split(" ");
+            const val = parseInt(parts[2], 10);
+            if (!isNaN(val)) {
+              autoState = val;
+              updateautoUI();
+            }
+          } else {
+            // unknown legacy text - just log
+            console.log("Unhandled legacy message:", text);
+          }
+        };
+        ws.onclose = () => {
+          console.warn("WebSocket disconnected. Reconnecting in 5s...");
+          setTimeout(setupWebSocket, 5000);
+        };
+        ws.onerror = (err) => {
+          console.error("WebSocket error:", err);
+          try {
+            ws.close();
+          } catch (e) {}
+        };
+      }
+
+      function exportExcel() {
+        const ws_data = [
+          ["STT", "Tên Tàu", "Tuyến", "Trạm", "Vận Tốc", "Ngày Đến", "Giờ Đến", "Ngày Rời", "Giờ Rời", "Trạng Thái"], ...currentFilteredData.map(row => [
+            row["STT"],
+            row["Tên Tàu"],
+            row["Tuyến"],
+            row["Trạm"],
+            row["Vận Tốc"],
+            row["Ngày Đến"],
+            row["Giờ Đến"],
+            row["Ngày Rời"],
+            row["Giờ Rời"],
+            row["Trạng Thái"]
+          ])
+        ];
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(ws_data);
+        XLSX.utils.book_append_sheet(wb, ws, "Data");
+        XLSX.writeFile(wb, "TrainData.xlsx");
+      }
+      async function exportPDF() {
+        const {
+          jsPDF
+        } = window.jspdf;
+        const pdf = new jsPDF('l', 'pt', 'a4');
+        const table = document.querySelector("#trainTable");
+        await html2canvas(table).then(canvas => {
+          const imgData = canvas.toDataURL('image/png');
+          const imgProps = pdf.getImageProperties(imgData);
+          const pdfWidth = pdf.internal.pageSize.getWidth();
+          const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+          pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+          pdf.save("TrainData.pdf");
+        });
+      }
+      const servoToggleButton = document.getElementById("servoToggle");
+      const servoStateLabel = document.getElementById("servoStateLabel");
+      servoToggleButton.addEventListener("click", () => {
+        if (ws && ws.readyState === WebSocket.OPEN && servoState !== null) {
+          if (servoState === 0) {
+            // currently OPEN -> request CLOSE
+            sendJSON({
+              command: "close_barrier"
+            });
+          } else {
+            // currently CLOSED -> request OPEN
+            sendJSON({
+              command: "open_barrier"
+            });
+          }
+        }
+      });
+      async function exportReportDOCX(tableData, filterTuyenValue, filterTenTauValue, dateFromValue, dateToValue, timeFromValue, timeToValue) {
+        const {
+          Document,
+          Packer,
+          Paragraph,
+          TextRun,
+          Table,
+          TableRow,
+          TableCell,
+          WidthType,
+          AlignmentType,
+          BorderStyle,
+          ShadingType
+        } = docx;
+        // 📌 Formatters
+        const formatDate = (val) => {
+          if (!val) return "";
+          const d = new Date(val);
+          if (isNaN(d)) return "";
+          return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
+        };
+        const formatTime = (val) => {
+          if (!val) return "";
+          const d = new Date(val);
+          if (isNaN(d)) return "";
+          return `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}:${String(d.getSeconds()).padStart(2,"0")}`;
+        };
+        // 📌 Current date for header
+        const now = new Date();
+        const ngay = now.getDate();
+        const thang = now.getMonth() + 1;
+        const nam = now.getFullYear();
+        // === HEADER ===
+        const header1 = new Paragraph({
+          children: [
+            new TextRun({
+              text: "TRƯỜNG CAO ĐẲNG GIAO THÔNG VẬN TẢI",
+              bold: true,
+              size: 22
+            }),
+            new TextRun({
+              text: "		CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM",
+              bold: true,
+              size: 22
+            })
+          ],
+          spacing: {
+            after: 200
+          }
+        });
+        const header2 = new Paragraph({
+          children: [
+            new TextRun({
+              text: "	KHOA KỸ THUẬT ĐIỆN - ĐIỆN TỬ",
+              bold: true,
+              size: 20
+            }),
+            new TextRun({
+              text: "						Độc lập - Tự do - Hạnh phúc",
+              bold: true,
+              size: 20
+            })
+          ],
+          spacing: {
+            after: 200
+          }
+        });
+        const dateLine = new Paragraph({
+          alignment: AlignmentType.RIGHT,
+          children: [
+            new TextRun({
+              text: `TP.HCM, ngày ${ngay} tháng ${thang} năm ${nam}`,
+              italics: true,
+              size: 20
+            })
+          ],
+          spacing: {
+            after: 200
+          }
+        });
+        const title = new Paragraph({
+          alignment: AlignmentType.CENTER,
+          children: [new TextRun({
+            text: "BẢNG THÔNG TIN TÀU CHẠY",
+            bold: true,
+            color: "0000FF",
+            size: 32
+          })],
+          spacing: {
+            after: 300
+          }
+        });
+        // const subTitle = new Paragraph({
+        //   alignment: AlignmentType.CENTER,
+        //   children: [new TextRun({ text: "Trạm Lý Chính Thắng", bold: true, size: 23 })],
+        //   spacing: { after: 300 }
+        // });
+        // === FILTER INFO ===
+        const infoFields = [{
+          label: "Tuyến",
+          value: filterTuyenValue
+        }, {
+          label: "Tên tàu",
+          value: filterTenTauValue
+        }, {
+          label: "Từ ngày",
+          value: dateFromValue
+        }, {
+          label: "Đến ngày",
+          value: dateToValue
+        }, {
+          label: "Từ giờ",
+          value: timeFromValue
+        }, {
+          label: "Đến giờ",
+          value: timeToValue
+        }];
+        const infoParagraphs = infoFields.filter(f => f.value).map(f => new Paragraph({
+          text: `${f.label}: ${f.value}`,
+          spacing: {
+            after: 100
+          },
+          size: 20
+        }));
+        // === TABLE ===
+        let table = null;
+        if (tableData && tableData.length > 0) {
+          const keys = Object.keys(tableData[0]);
+          const colWidth = Math.floor(100 / keys.length); // spread evenly
+          const headerRow = new TableRow({
+            children: keys.map(k => new TableCell({
+              children: [new Paragraph({
+                text: k,
+                bold: true,
+                alignment: AlignmentType.CENTER,
+                size: 20
+              })],
+              shading: {
+                fill: "BDB76B"
+              },
+              width: {
+                size: colWidth,
+                type: WidthType.PERCENTAGE
+              },
+              margins: {
+                top: 200,
+                bottom: 200,
+                left: 200,
+                right: 200
+              }
+            }))
+          });
+          const dataRows = tableData.map((rowObj, idx) => new TableRow({
+            children: keys.map(k => {
+              let val = rowObj[k];
+              // ---- AUTO FORMAT DATE/TIME ----
+              if (k.includes("Giờ")) val = formatTime(val);
+              if (k.includes("Ngày")) val = formatDate(val);
+              return new TableCell({
+                children: [new Paragraph({
+                  text: String(val ?? ""),
+                  size: 20
+                })],
+                shading: {
+                  fill: idx % 2 === 0 ? "FFFFFF" : "FFF4E6"
+                },
+                width: {
+                  size: colWidth,
+                  type: WidthType.PERCENTAGE
+                },
+                margins: {
+                  top: 200,
+                  bottom: 200,
+                  left: 200,
+                  right: 200
+                }
+              });
+            })
+          }));
+          table = new Table({
+            rows: [headerRow, ...dataRows],
+            width: {
+              size: 100,
+              type: WidthType.PERCENTAGE
+            },
+            alignment: AlignmentType.CENTER
+          });
+        }
+        const subDateLine = new Paragraph({
+          alignment: AlignmentType.RIGHT,
+          children: [
+            new TextRun({
+              text: `TP.HCM, ngày ${ngay} tháng ${thang} năm ${nam}`,
+              italics: true,
+              size: 20
+            })
+          ],
+          spacing: {
+            after: 200,
+            before: 200
+          }
+        });
+        const signLine = new Paragraph({
+          alignment: AlignmentType.RIGHT,
+          children: [
+            new TextRun({
+              text: `Trưởng Trạm		`,
+              bold: true,
+              size: 28
+            })
+          ],
+          spacing: {
+            after: 200
+          }
+        });
+        const subSignLine = new Paragraph({
+          alignment: AlignmentType.RIGHT,
+          children: [
+            new TextRun({
+              text: `(Ký và ghi rõ họ tên)		`,
+              italics: true,
+              size: 20
+            })
+          ],
+          spacing: {
+            after: 200
+          }
+        });
+        // === DOCUMENT ===
+        const doc = new Document({
+          styles: {
+            default: {
+              document: {
+                run: {
+                  font: "Times New Roman",
+                },
+                paragraph: {
+                  spacing: {
+                    line: 276
+                  } // optional: 1.15 line height
+                }
+              }
+            }
+          },
+          sections: [{
+            properties: {
+              page: {
+                margin: {
+                  top: 720, // 0.5 inch
+                  bottom: 720, // 0.5 inch
+                  left: 720, // 0.5 inch
+                  right: 720 // 0.5 inch
+                }
+              }
+            },
+            children: [
+              header1, header2, dateLine, title, //subTitle,
+              ...infoParagraphs, ...(table ? [table] : []),
+              subDateLine, signLine, subSignLine
+            ]
+          }]
+        });
+        const blob = await Packer.toBlob(doc);
+        const filename = `BaoCao_${(filterTenTauValue || 'Tau').replace(/\s+/g,'_')}.docx`;
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        link.click();
+      }
+
+      function updateServoUI() {
+        if (servoState === 0) {
+          servoToggleButton.textContent = "Hạ barrier";
+          servoToggleButton.style.backgroundColor = "#f37021";
+          servoStateLabel.textContent = "Open";
+          servoStateLabel.style.backgroundColor = "#51b848";
+          document.getElementById("servoSatateLabelImg").src = "./Barrier Open.png"
+        } else if (servoState === 1) {
+          servoToggleButton.textContent = "Nâng barrier";
+          servoToggleButton.style.backgroundColor = "#51b848";
+          servoStateLabel.textContent = "Close";
+          servoStateLabel.style.backgroundColor = "#f37021";
+          document.getElementById("servoSatateLabelImg").src = "./Barrier Close (1).png"
+        }
+      }
+      const autoToggleButton = document.getElementById("autoToggle");
+      const autoStateLabel = document.getElementById("autoStateLabel");
+      autoToggleButton.addEventListener("click", () => {
+        if (ws && ws.readyState === WebSocket.OPEN && autoState !== null) {
+          const nextStateBool = !(autoState === "True"); // invert current
+          sendJSON({
+            command: "set_auto_state",
+            state: nextStateBool
+          });
+          // optimistic UI update will happen when auto_state_response arrives
+        }
+      });
+
+      function updateautoUI() {
+        if (autoState === "False") {
+          autoToggleButton.textContent = "MANUAL";
+          autoToggleButton.style.backgroundColor = "#f37021";
+          autoStateLabel.textContent = "AUTO";
+          autoStateLabel.style.backgroundColor = "#51b848";
+          document.getElementById("autoSatateLabelImg").src = "./Automation.png";
+        } else if (autoState === "True") {
+          autoToggleButton.textContent = "AUTO";
+          autoToggleButton.style.backgroundColor = "#51b848";
+          autoStateLabel.textContent = "MANUAL";
+          autoStateLabel.style.backgroundColor = "#f37021";
+          document.getElementById("autoSatateLabelImg").src = "./Automation.gif";
+        }
+      }
+      const toggleBtn = document.querySelector('.toggle-form-btn');
+      const form = document.getElementById('settingsForm');
+      toggleBtn.addEventListener('click', () => {
+        form.classList.toggle('hidden');
+      });
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const distanceRaw = document.getElementById('distance').value;
+        const delay1Raw = document.getElementById('delay1').value;
+        const delay2Raw = document.getElementById('delay2').value;
+        const distance = distanceRaw === "" ? undefined : Number(distanceRaw);
+        const warning1 = delay1Raw === "" ? undefined : Number(delay1Raw);
+        const warning2 = delay2Raw === "" ? undefined : Number(delay2Raw);
+        console.log("Submitted values:", {
+          distance,
+          warning1,
+          warning2
+        });
+        const payload = {
+          command: "update_warning"
+        };
+        if (!isNaN(distance) && distance !== undefined) payload.distance = distance;
+        if (!isNaN(warning1) && warning1 !== undefined) payload.warning1 = warning1;
+        if (!isNaN(warning2) && warning2 !== undefined) payload.warning2 = warning2;
+        sendJSON(payload);
+      });
+      document.getElementById("searchInput").addEventListener("input", filterAndSearch);
+      document.getElementById("filterTenTau").addEventListener("change", filterAndSearch);
+      document.getElementById("filterTuyen").addEventListener("change", filterAndSearch);
+      document.getElementById("speedUnit").addEventListener("change", () => {
+        localStorage.setItem("speedUnit", document.getElementById("speedUnit").value);
+        renderTable(currentFilteredData);
+      });
+      document.getElementById("dateFrom").addEventListener("change", filterAndSearch);
+      document.getElementById("dateTo").addEventListener("change", filterAndSearch);
+      document.getElementById("timeFrom").addEventListener("change", filterAndSearch);
+      document.getElementById("timeTo").addEventListener("change", filterAndSearch);
+      document.querySelectorAll("#trainTable th").forEach(th => {
+        th.addEventListener("click", () => sortBy(th.dataset.key));
+      });
+      document.getElementById("exportExcel").addEventListener("click", exportExcel);
+      document.getElementById("exportPDF").addEventListener("click", exportPDF);
+      document.getElementById("exportDOCX").addEventListener("click", () => {
+        // read real values from DOM at click-time
+        const filterTuyenValue = document.getElementById("filterTuyen").value;
+        const filterTenTauValue = document.getElementById("filterTenTau").value;
+        const dateFromValue = document.getElementById("dateFrom").value;
+        const dateToValue = document.getElementById("dateTo").value;
+        const timeFromValue = document.getElementById("timeFrom").value;
+        const timeToValue = document.getElementById("timeTo").value;
+        exportReportDOCX(currentFilteredData, filterTuyenValue, filterTenTauValue, dateFromValue, dateToValue, timeFromValue, timeToValue);
+      });
+      let avgSpeedChartInstance = null;
+      let tripCountChartInstance = null;
+      let speedPerDayChartInstance = null;
+      const trainColorMap = {};
+
+      function renderCharts() {
+        // Destroy old charts
+        if (avgSpeedChartInstance) avgSpeedChartInstance.destroy();
+        if (tripCountChartInstance) tripCountChartInstance.destroy();
+        if (speedPerDayChartInstance) speedPerDayChartInstance.destroy();
+        // --- 1. Average speed per train ---
+        const trainSpeeds = {};
+        const trainCounts = {};
+        originalData.forEach(item => {
+          const train = item["Tên Tàu"];
+          const speed = Number(item["Vận Tốc"]);
+          trainSpeeds[train] = (trainSpeeds[train] || 0) + speed;
+          trainCounts[train] = (trainCounts[train] || 0) + 1;
+        });
+        const trainNames = Object.keys(trainSpeeds);
+        const avgSpeeds = trainNames.map(name => (trainSpeeds[name] / trainCounts[name]).toFixed(2));
+        const globalAvgSpeed = (avgSpeeds.reduce((sum, val) => sum + parseFloat(val), 0) / avgSpeeds.length).toFixed(2);
+        const ctxAvgSpeed = document.getElementById('avgSpeedChart').getContext('2d');
+        avgSpeedChartInstance = new Chart(ctxAvgSpeed, {
+          type: 'bar',
+          data: {
+            labels: trainNames,
+            datasets: [{
+              label: 'Tốc Độ Trung Bình (km/h)',
+              data: avgSpeeds,
+              backgroundColor: trainNames.map(name => hashColor(name)),
+              barThickness: 20,
+              maxBarThickness: 20
+            }, {
+              label: 'Tốc độ TB tất cả tàu',
+              type: 'line',
+              data: Array(avgSpeeds.length).fill(globalAvgSpeed),
+              borderColor: 'red',
+              borderWidth: 2,
+              fill: false,
+              pointRadius: 0
+            }]
+          },
+          options: {
+            responsive: true,
+            scales: {
+              y: {
+                beginAtZero: true
+              }
+            }
+          }
+        });
+        // --- 2. Trip count per train ---
+        const tripCounts = trainCounts;
+        const globalTripAvg = (Object.values(tripCounts).reduce((a, b) => a + b, 0) / Object.values(tripCounts).length).toFixed(2);
+        const ctxTripCount = document.getElementById('tripCountChart').getContext('2d');
+        tripCountChartInstance = new Chart(ctxTripCount, {
+          type: 'bar',
+          data: {
+            labels: Object.keys(tripCounts),
+            datasets: [{
+              label: 'Số Chuyến',
+              data: Object.values(tripCounts),
+              backgroundColor: Object.keys(tripCounts).map(name => hashColor(name)),
+              barThickness: 20,
+              maxBarThickness: 20
+            }, {
+              label: 'Số chuyến TB tất cả tàu',
+              type: 'line',
+              data: Array(Object.keys(tripCounts).length).fill(globalTripAvg),
+              borderColor: 'red',
+              borderWidth: 2,
+              fill: false,
+              pointRadius: 0
+            }]
+          },
+          options: {
+            responsive: true,
+            scales: {
+              y: {
+                beginAtZero: true
+              }
+            }
+          }
+        });
+        // --- 3. Average speed per day per train ---
+        const trainDateSpeedMap = {};
+        originalData.forEach(item => {
+          const train = item["Tên Tàu"];
+          const date = new Date(item["Ngày Đến"]).toISOString().split("T")[0];
+          const speed = Number(item["Vận Tốc"]);
+          const key = train + "_" + date;
+          if (!trainDateSpeedMap[key]) {
+            trainDateSpeedMap[key] = {
+              sum: 0,
+              count: 0
+            };
+          }
+          trainDateSpeedMap[key].sum += speed;
+          trainDateSpeedMap[key].count += 1;
+        });
+        // Build datasets per train
+        const trainDateGroups = {};
+        Object.keys(trainDateSpeedMap).forEach(key => {
+          const [train, date] = key.split("_");
+          if (!trainDateGroups[train]) trainDateGroups[train] = {};
+          trainDateGroups[train][date] = (trainDateSpeedMap[key].sum / trainDateSpeedMap[key].count).toFixed(2);
+        });
+        // Collect all unique dates
+        const allDatesSet = new Set();
+        Object.values(trainDateGroups).forEach(obj => {
+          Object.keys(obj).forEach(date => allDatesSet.add(date));
+        });
+        const allDates = Array.from(allDatesSet).sort();
+        const datasets = Object.keys(trainDateGroups).map(train => {
+          if (!trainColorMap[train]) {
+            trainColorMap[train] = hashColor(train);
+          }
+          return {
+            label: train,
+            data: allDates.map(date => trainDateGroups[train][date] || null),
+            fill: false,
+            borderColor: trainColorMap[train],
+            tension: 0.1
+          };
+        });
+        const ctxSpeedPerDay = document.getElementById('speedPerDayChart').getContext('2d');
+        speedPerDayChartInstance = new Chart(ctxSpeedPerDay, {
+          type: 'line',
+          data: {
+            labels: allDates,
+            datasets: datasets
+          },
+          options: {
+            responsive: true,
+            scales: {
+              y: {
+                beginAtZero: true
+              }
+            }
+          }
+        });
+        // Calculate average of all values (excluding nulls)
+        let totalSum = 0;
+        let totalCount = 0;
+        Object.values(trainDateGroups).forEach(trainData => {
+          Object.values(trainData).forEach(val => {
+            if (val !== null && val !== undefined) {
+              totalSum += parseFloat(val);
+              totalCount++;
+            }
+          });
+        });
+        const globalDailyAvg = (totalSum / totalCount).toFixed(2);
+        // Add red average line
+        datasets.push({
+          label: 'Tốc độ TB tất cả tàu mỗi ngày',
+          data: Array(allDates.length).fill(globalDailyAvg),
+          borderColor: 'red',
+          borderWidth: 2,
+          fill: false,
+          pointRadius: 0,
+          borderDash: [5, 5]
+        });
+      }
+      applySavedUnits();
+      fetchDataAndRender();
+      setupWebSocket();
+      //setInterval(fetchDataAndRender, 60000);
+      console.log("docx loaded?", window.docx);
+    </script>
+  </body>
 </html>
