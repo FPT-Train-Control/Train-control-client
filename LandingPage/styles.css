@@ -314,7 +314,6 @@ body {
   border-radius: 12px;
   box-shadow: var(--shadow-lg);
   overflow: hidden;
-  position: relative; /* Added for positioning the button */
 }
 
 .map-image {
@@ -477,4 +476,20 @@ body {
     padding: 10px 20px;
     font-size: 14px;
   }
+}
+
+.btn-map {
+  padding: 10px 20px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  text-decoration: none;
+  font-weight: bold;
+  box-shadow: var(--shadow-md);
+  transition: background-color var(--transition);
+}
+
+.btn-map:hover {
+  background-color: var(--primary-dark);
 }
