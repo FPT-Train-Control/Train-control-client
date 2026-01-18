@@ -47,11 +47,6 @@ header img {
   transition: transform var(--transition-normal);
 }
 
-header img:last-child {
-  height: 50px;
-  margin-left: auto;
-}
-
 header img:hover {
   transform: scale(1.05);
 }
