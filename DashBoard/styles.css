@@ -112,7 +112,7 @@ header .banner:nth-of-type(2) {
 
 .nav-bar button:hover {
   color: #fff;
-  transform: translateY(-2px);
+  transform: scale(1.05);
   box-shadow: 0 8px 20px rgba(255, 102, 0, 0.4);
 }
 
@@ -156,8 +156,8 @@ h3 {
 /* ==================== CONTROLS ====================*/
 .controls {
   margin: 0;
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 12px;
   justify-content: center;
   padding: 20px 15px;
@@ -179,6 +179,7 @@ h3 {
   color: var(--text-dark);
   transition: all var(--transition-normal);
   font-weight: 500;
+  grid-column: auto;
 }
 
 .controls input:focus,
@@ -202,6 +203,7 @@ h3 {
   box-shadow: var(--shadow-sm);
   position: relative;
   overflow: hidden;
+  grid-column: auto;
 }
 
 .controls button::after {
@@ -269,7 +271,7 @@ th {
   letter-spacing: 0.5px;
   user-select: none;
   position: sticky;
-  top: 178px;
+  top: 166px;
   z-index: 80;
 }
 
@@ -697,6 +699,7 @@ input[type="time"] {
   }
 
   .controls {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
     gap: 8px;
     padding: 15px;
   }
@@ -704,7 +707,7 @@ input[type="time"] {
   .controls input,
   .controls select,
   .controls button {
-    min-width: 120px;
+    min-width: 100px;
   }
 
   #sectionPhanTich > div {
@@ -742,7 +745,7 @@ input[type="time"] {
   }
 
   .controls {
-    flex-direction: column;
+    grid-template-columns: 1fr 1fr;
     padding: 15px;
   }
 
@@ -750,6 +753,13 @@ input[type="time"] {
   .controls select,
   .controls button {
     width: 100%;
+  }
+
+  /* Export buttons span full width on second row */
+  #exportExcel,
+  #exportPDF,
+  #exportDOCX {
+    grid-column: auto;
   }
 
   table {
@@ -794,18 +804,16 @@ input[type="time"] {
     font-size: 16px;
   }
 
-  table {
-    font-size: 11px;
-  }
-
-  th,
-  td {
-    padding: 6px 4px;
-  }
-
   .controls {
+    grid-template-columns: 1fr;
     padding: 10px;
     gap: 5px;
+  }
+
+  .controls input,
+  .controls select,
+  .controls button {
+    width: 100%;
   }
 
   #servoStateLabel,
@@ -821,5 +829,14 @@ input[type="time"] {
   .dashboard-controls img {
     width: 100px;
     height: 100px;
+  }
+
+  table {
+    font-size: 11px;
+  }
+
+  th,
+  td {
+    padding: 6px 4px;
   }
 }
