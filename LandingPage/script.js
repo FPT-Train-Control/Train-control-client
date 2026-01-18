@@ -4,17 +4,13 @@ document.addEventListener('DOMContentLoaded', () => {
   
   navLinks.forEach(link => {
     link.addEventListener('click', (e) => {
-      // Remove active class from all links
       navLinks.forEach(l => l.classList.remove('active'));
-      // Add active class to clicked link
       link.classList.add('active');
     });
   });
 
-  // Set initial active link
   navLinks[0].classList.add('active');
 
-  // Update active link on scroll
   window.addEventListener('scroll', () => {
     const sections = document.querySelectorAll('section');
     let current = '';
@@ -53,7 +49,38 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.feature-card, .contact-card').forEach(card => {
     observer.observe(card);
   });
+
+  // Initialize map dots
+  initializeMapDots();
 });
+
+// ==================== MAP DOTS ====================
+function initializeMapDots() {
+  const stations = [
+    { name: 'Ngọc Hồi', icon: '🚂', x: 15, y: 25 },
+    { name: 'Phủ Lý', icon: '🚂', x: 20, y: 35 },
+    { name: 'Huế', icon: '🚂', x: 45, y: 55 },
+    { name: 'Đà Nẵng', icon: '🚂', x: 50, y: 62 },
+    { name: 'Sài Gòn', icon: '🚂', x: 55, y: 85 },
+    { name: 'Cần Thơ', icon: '🚂', x: 52, y: 92 }
+  ];
+
+  const mapDotsContainer = document.getElementById('mapDotsContainer');
+  
+  stations.forEach(station => {
+    const dot = document.createElement('a');
+    dot.href = '../DashBoard/index.html';
+    dot.className = 'map-dot';
+    dot.style.left = station.x + '%';
+    dot.style.top = station.y + '%';
+    dot.innerHTML = `
+      ${station.icon}
+      <div class="map-dot-tooltip">${station.name}</div>
+    `;
+    dot.title = `Trạm ${station.name} - Nhấp để vào Hệ Thống Điều Khiển`;
+    mapDotsContainer.appendChild(dot);
+  });
+}
 
 // Add fade-in animation
 const style = document.createElement('style');

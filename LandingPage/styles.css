@@ -314,12 +314,88 @@ body {
   border-radius: 12px;
   box-shadow: var(--shadow-lg);
   overflow: hidden;
+  position: relative;
 }
 
 .map-image {
   width: 100%;
   height: auto;
   border-radius: 8px;
+  display: block;
+}
+
+.map-dots {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  right: 20px;
+  bottom: 20px;
+  pointer-events: none;
+}
+
+.map-dot {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+  border: 3px solid #fff;
+  cursor: pointer;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  box-shadow: 0 4px 12px rgba(255, 102, 0, 0.3);
+  transition: all var(--transition);
+  transform: scale(1);
+}
+
+.map-dot:hover {
+  transform: scale(1.15);
+  box-shadow: 0 8px 24px rgba(255, 102, 0, 0.6);
+}
+
+.map-dot::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 2px solid var(--primary-color);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 0.3;
+  }
+}
+
+.map-dot-tooltip {
+  position: absolute;
+  background: #333;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  white-space: nowrap;
+  bottom: 120%;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition);
+  z-index: 10;
+}
+
+.map-dot:hover .map-dot-tooltip {
+  opacity: 1;
 }
 
 .routes-info h3 {
@@ -448,6 +524,12 @@ body {
     grid-template-columns: 1fr;
   }
 
+  .map-dot {
+    width: 35px;
+    height: 35px;
+    font-size: 16px;
+  }
+
   .features h2,
   .routes h2,
   .contact h2 {
@@ -476,20 +558,4 @@ body {
     padding: 10px 20px;
     font-size: 14px;
   }
-}
-
-.btn-map {
-  padding: 10px 20px;
-  background-color: var(--primary-color);
-  color: white;
-  border: none;
-  border-radius: 5px;
-  text-decoration: none;
-  font-weight: bold;
-  box-shadow: var(--shadow-md);
-  transition: background-color var(--transition);
-}
-
-.btn-map:hover {
-  background-color: var(--primary-dark);
 }
