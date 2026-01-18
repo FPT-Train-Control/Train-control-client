@@ -796,9 +796,6 @@ input[type="time"] {
 }
 
 @media (max-width: 480px) {
-  header img {
-    height: 50px;
-  }
 
   h1 {
     padding: 10px 15px;
