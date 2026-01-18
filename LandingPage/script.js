@@ -57,12 +57,12 @@ document.addEventListener('DOMContentLoaded', () => {
 // ==================== MAP DOTS ====================
 function initializeMapDots() {
   const stations = [
-    { name: 'Ngọc Hồi', icon: '🚂', x: 15, y: 25 },
-    { name: 'Phủ Lý', icon: '🚂', x: 20, y: 35 },
-    { name: 'Huế', icon: '🚂', x: 45, y: 55 },
-    { name: 'Đà Nẵng', icon: '🚂', x: 50, y: 62 },
-    { name: 'Sài Gòn', icon: '🚂', x: 55, y: 85 },
-    { name: 'Cần Thơ', icon: '🚂', x: 52, y: 92 }
+    { name: 'Hà Nội', icon: '🚂', x: 45, y: 15 },
+    { name: 'Vinh', icon: '🚂', x: 45, y: 30 },
+    { name: 'Huế', icon: '🚂', x: 55, y: 45 },
+    { name: 'Quảng Ngãi', icon: '🚂', x: 58, y: 53 },
+    { name: 'Nha Trang', icon: '🚂', x: 60, y: 70 },
+    { name: 'Hồ Chí Minh', icon: '🚂', x: 50, y: 80 }
   ];
 
   const mapDotsContainer = document.getElementById('mapDotsContainer');
