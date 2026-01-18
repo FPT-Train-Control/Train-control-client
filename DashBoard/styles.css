@@ -41,6 +41,21 @@ header {
   border-bottom: 5px solid var(--primary-color);
 }
 
+header img {
+  height: 75px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+  transition: transform var(--transition-normal);
+}
+
+header img:last-child {
+  height: 50px;
+  margin-left: auto;
+}
+
+header img:hover {
+  transform: scale(1.05);
+}
+
 header .banner {
   left: 50%;
   font-size: 30px;
