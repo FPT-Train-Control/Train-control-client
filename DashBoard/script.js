@@ -1,6 +1,6 @@
 // ==================== CONSTANTS ====================
 const CONFIG = {
-  GAS_URL: "https://script.google.com/macros/s/AKfycbziweULUcvboDYnWmFpxHqjC8Hcra7B3jG_5jX04AtTQW2h3ltqlsvzt0uIRdBS5mpi/exec",
+  GAS_URL: "https://script.google.com/macros/s/AKfycbwGCqdZvb9hlHfwJUFRlfpgBfkXtdBSKRVxxUZX2MzYw4M-kTud7w9aK7Ilm_d0PXAoyQ/exec",
   WS_URL: "wss://durable-chat-template.templates.workers.dev/parties/chat/FPTTrainWSS",
   RECONNECT_DELAY: 5000,
   FADE_DELAY: 10,
