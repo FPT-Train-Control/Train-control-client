@@ -164,6 +164,8 @@ function setupToggleSidebar() {
   const toggleBtn = document.getElementById("toggleSidebar");
   toggleBtn.addEventListener("click", () => {
     document.body.classList.toggle("sidebar-active");
+    const sidebar = document.getElementById("sidebar");
+    sidebar.classList.toggle("active");
   });
 }
 
@@ -227,26 +229,31 @@ async function fetchDataAndRender() {
 }
 
 function setupInfiniteScroll() {
-  const tbody = document.querySelector("#trainTable tbody");
+  let scrollListener;
   
-  if (tbody.dataset.observerSetup) return;
-  tbody.dataset.observerSetup = "true";
+  // Remove previous listener if exists
+  if (window._scrollListener) {
+    window.removeEventListener("scroll", window._scrollListener);
+  }
   
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting && STATE.hasMoreData && !STATE.isLoadingMore) {
-        STATE.isLoadingMore = true;
-        STATE.currentChunk++;
-        document.getElementById("loadingIndicator").classList.add("show");
-        fetchDataAndRender().then(() => {
-          STATE.isLoadingMore = false;
-          document.getElementById("loadingIndicator").classList.remove("show");
-        });
-      }
-    });
-  });
+  scrollListener = () => {
+    // Check if scrolled close to bottom (within 500px)
+    const scrollPosition = window.innerHeight + window.scrollY;
+    const pageHeight = document.documentElement.scrollHeight;
+    
+    if (pageHeight - scrollPosition < 500 && STATE.hasMoreData && !STATE.isLoadingMore) {
+      STATE.isLoadingMore = true;
+      STATE.currentChunk++;
+      document.getElementById("loadingIndicator").classList.add("show");
+      fetchDataAndRender().then(() => {
+        STATE.isLoadingMore = false;
+        document.getElementById("loadingIndicator").classList.remove("show");
+      });
+    }
+  };
   
-  observer.observe(tbody);
+  window._scrollListener = scrollListener;
+  window.addEventListener("scroll", scrollListener);
 }
 
 function populateFilters() {
