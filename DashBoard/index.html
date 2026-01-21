@@ -14,8 +14,249 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- docx -->
     <script src="https://unpkg.com/docx@7.1.0/build/index.js"></script>
+    <style>
+      /* Login Modal */
+      #loginModal {
+        display: flex;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      #loginModal.hidden {
+        display: none;
+      }
+      
+      .login-container {
+        background: white;
+        padding: 40px;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 400px;
+      }
+      
+      .login-container h2 {
+        text-align: center;
+        margin-bottom: 30px;
+        color: #333;
+      }
+      
+      .login-form input {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 15px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+        box-sizing: border-box;
+      }
+      
+      .login-form button {
+        width: 100%;
+        padding: 10px;
+        background: #51b848;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 16px;
+        cursor: pointer;
+      }
+      
+      .login-form button:hover {
+        background: #3a9230;
+      }
+      
+      .login-error {
+        color: red;
+        text-align: center;
+        margin-bottom: 15px;
+        font-size: 14px;
+      }
+      
+      /* Left sidebar menu */
+      .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 200px;
+        height: 100%;
+        background: #2c3e50;
+        color: white;
+        padding-top: 20px;
+        z-index: 500;
+        overflow-y: auto;
+        display: none;
+      }
+      
+      .sidebar.active {
+        display: flex;
+        flex-direction: column;
+      }
+      
+      .sidebar-header {
+        padding: 15px 20px;
+        border-bottom: 1px solid #34495e;
+        margin-bottom: 20px;
+      }
+      
+      .sidebar-header p {
+        margin: 0;
+        font-size: 14px;
+        color: #bdc3c7;
+      }
+      
+      .sidebar-user {
+        font-weight: bold;
+        color: white;
+        font-size: 14px;
+      }
+      
+      .sidebar-station {
+        font-size: 12px;
+        color: #95a5a6;
+        margin-top: 5px;
+      }
+      
+      .sidebar-menu {
+        flex: 1;
+      }
+      
+      .sidebar-menu a {
+        display: block;
+        padding: 12px 20px;
+        color: #bdc3c7;
+        text-decoration: none;
+        border-left: 3px solid transparent;
+        transition: all 0.3s;
+      }
+      
+      .sidebar-menu a:hover {
+        background: #34495e;
+        color: white;
+      }
+      
+      .sidebar-menu a.active {
+        background: #51b848;
+        color: white;
+        border-left-color: #51b848;
+      }
+      
+      .sidebar-footer {
+        padding: 15px 20px;
+        border-top: 1px solid #34495e;
+      }
+      
+      .sidebar-footer button {
+        width: 100%;
+        padding: 10px;
+        background: #e74c3c;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+      }
+      
+      .sidebar-footer button:hover {
+        background: #c0392b;
+      }
+      
+      /* Main content shift */
+      body.sidebar-active {
+        margin-left: 200px;
+      }
+      
+      body.sidebar-active header,
+      body.sidebar-active .nav-bar,
+      body.sidebar-active > div[id^="section"] {
+        margin-left: 0;
+      }
+      
+      .toggle-sidebar-btn {
+        display: none;
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        background: #2c3e50;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+        z-index: 400;
+      }
+      
+      body.sidebar-active .toggle-sidebar-btn {
+        display: block;
+        left: 220px;
+      }
+      
+      /* Infinite scroll loader */
+      #loadingIndicator {
+        text-align: center;
+        padding: 20px;
+        display: none;
+      }
+      
+      #loadingIndicator.show {
+        display: block;
+      }
+      
+      .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #51b848;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto;
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
   </head>
   <body>
+    <!-- Login Modal -->
+    <div id="loginModal">
+      <div class="login-container">
+        <h2>Đăng Nhập</h2>
+        <div class="login-error" id="loginError"></div>
+        <form class="login-form" id="loginForm">
+          <input type="text" id="loginUsername" placeholder="Tên đăng nhập" required>
+          <input type="password" id="loginPassword" placeholder="Mật khẩu" required>
+          <button type="submit">Đăng Nhập</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Left Sidebar Menu -->
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-user" id="sidebarUsername"></div>
+        <div class="sidebar-station" id="sidebarStation"></div>
+      </div>
+      <nav class="sidebar-menu">
+        <a href="#" data-section="sectionHoSoTau">📊 Thông Tin Tàu</a>
+        <a href="#" data-section="sectionPhanTich">📈 Phân Tích Dữ Liệu</a>
+        <a href="#" data-section="sectionBangDieuKhien">⚙️ Bảng Điều Khiển</a>
+      </nav>
+      <div class="sidebar-footer">
+        <button id="logoutBtn">🚪 Đăng Xuất</button>
+      </div>
+    </div>
+
+    <button class="toggle-sidebar-btn" id="toggleSidebar">☰</button>
+    
     <header>
       <a href="../LandingPage/index.html" class="logo-link">
         <img src="./Logo.png" alt="Logo">
@@ -72,6 +313,10 @@
         </thead>
         <tbody></tbody>
       </table>
+      <div id="loadingIndicator">
+        <div class="spinner"></div>
+        <p>Đang tải dữ liệu...</p>
+      </div>
     </div>
     <div id="sectionPhanTich" style="display:none;">
       <h1>Phân Tích Dữ Liệu</h1>

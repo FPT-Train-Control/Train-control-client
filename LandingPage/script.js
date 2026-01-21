@@ -1,5 +1,15 @@
 // ==================== NAVIGATION ====================
 document.addEventListener('DOMContentLoaded', () => {
+  // Check if user is logged in and redirect to dashboard
+  const username = localStorage.getItem("trainUsername");
+  const password = localStorage.getItem("trainPassword");
+  
+  if (username && password) {
+    // User is logged in, redirect to dashboard
+    window.location.href = "../DashBoard/index.html";
+    return;
+  }
+
   const navLinks = document.querySelectorAll('.nav-link:not(.btn-dashboard)');
   
   navLinks.forEach(link => {

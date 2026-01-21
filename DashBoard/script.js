@@ -6,7 +6,8 @@ const CONFIG = {
   FADE_DELAY: 10,
   BARRIER_COLORS: { OPEN: "#51b848", CLOSED: "#f37021" },
   BARRIER_STATES: { OPEN: 0, CLOSED: 1 },
-  AUTO_STATES: { ON: "True", OFF: "False" }
+  AUTO_STATES: { ON: "True", OFF: "False" },
+  CHUNK_SIZE: 50
 };
 
 const SECTIONS = {
@@ -24,6 +25,10 @@ const SPEED_UNITS = {
 
 // ==================== STATE ====================
 const STATE = {
+  user: null,
+  username: null,
+  password: null,
+  station: null,
   originalData: [],
   currentFilteredData: [],
   currentSort: { key: "", asc: true },
@@ -35,8 +40,132 @@ const STATE = {
     tripCount: null,
     speedPerDay: null
   },
-  trainColorMap: {}
+  trainColorMap: {},
+  currentChunk: 0,
+  isLoadingMore: false,
+  hasMoreData: true,
+  displayedRowCount: 0
 };
+
+// ==================== AUTHENTICATION ====================
+function initLoginUI() {
+  const loginForm = document.getElementById("loginForm");
+  const loginUsername = document.getElementById("loginUsername");
+  const loginPassword = document.getElementById("loginPassword");
+  const loginError = document.getElementById("loginError");
+  const loginModal = document.getElementById("loginModal");
+
+  // Check if already logged in
+  const savedUsername = localStorage.getItem("trainUsername");
+  const savedPassword = localStorage.getItem("trainPassword");
+  
+  if (savedUsername && savedPassword) {
+    STATE.username = savedUsername;
+    STATE.password = savedPassword;
+    verifyLoginAndInit();
+    return;
+  }
+
+  loginForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const username = loginUsername.value;
+    const password = loginPassword.value;
+    
+    loginError.textContent = "";
+    
+    try {
+      const response = await fetch(`${CONFIG.GAS_URL}?action=login&username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`);
+      const data = await response.json();
+      
+      if (data.status === "success") {
+        STATE.username = username;
+        STATE.password = password;
+        STATE.station = data.user.station;
+        localStorage.setItem("trainUsername", username);
+        localStorage.setItem("trainPassword", password);
+        loginModal.classList.add("hidden");
+        initAfterLogin();
+      } else {
+        loginError.textContent = "Tên đăng nhập hoặc mật khẩu không chính xác";
+      }
+    } catch (err) {
+      loginError.textContent = "Lỗi kết nối. Vui lòng thử lại.";
+      console.error("Login error:", err);
+    }
+  });
+}
+
+function verifyLoginAndInit() {
+  const loginModal = document.getElementById("loginModal");
+  const loginError = document.getElementById("loginError");
+  
+  fetch(`${CONFIG.GAS_URL}?action=login&username=${encodeURIComponent(STATE.username)}&password=${encodeURIComponent(STATE.password)}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === "success") {
+        STATE.station = data.user.station;
+        loginModal.classList.add("hidden");
+        initAfterLogin();
+      } else {
+        localStorage.removeItem("trainUsername");
+        localStorage.removeItem("trainPassword");
+        loginError.textContent = "Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.";
+        loginModal.classList.remove("hidden");
+      }
+    })
+    .catch(err => {
+      console.error("Verification error:", err);
+      loginError.textContent = "Lỗi kết nối. Vui lòng thử lại.";
+    });
+}
+
+function initAfterLogin() {
+  document.body.classList.add("sidebar-active");
+  document.getElementById("sidebar").classList.add("active");
+  document.getElementById("sidebarUsername").textContent = STATE.username;
+  document.getElementById("sidebarStation").textContent = `Trạm: ${STATE.station}`;
+  
+  setupSidebarMenu();
+  setupLogout();
+  
+  STATE.currentChunk = 0;
+  STATE.displayedRowCount = 0;
+  STATE.hasMoreData = true;
+  
+  fetchDataAndRender();
+  initNavigation();
+  setupControls();
+  setupWebSocket();
+}
+
+function setupSidebarMenu() {
+  const sidebarLinks = document.querySelectorAll(".sidebar-menu a");
+  const navButtons = document.querySelectorAll(".nav-bar button");
+  
+  sidebarLinks.forEach((link, index) => {
+    link.addEventListener("click", (e) => {
+      e.preventDefault();
+      sidebarLinks.forEach(l => l.classList.remove("active"));
+      link.classList.add("active");
+      navButtons[index].click();
+    });
+  });
+}
+
+function setupLogout() {
+  document.getElementById("logoutBtn").addEventListener("click", () => {
+    localStorage.removeItem("trainUsername");
+    localStorage.removeItem("trainPassword");
+    location.reload();
+  });
+}
+
+function setupToggleSidebar() {
+  const toggleBtn = document.getElementById("toggleSidebar");
+  toggleBtn.addEventListener("click", () => {
+    document.body.classList.toggle("sidebar-active");
+  });
+}
 
 // ==================== NAVIGATION ====================
 function initNavigation() {
@@ -68,18 +197,56 @@ function switchSection(button, navButtons) {
 // ==================== DATA MANAGEMENT ====================
 async function fetchDataAndRender() {
   try {
-    const res = await fetch(CONFIG.GAS_URL + "?t=" + Date.now());
+    const res = await fetch(`${CONFIG.GAS_URL}?action=fetch&username=${encodeURIComponent(STATE.username)}&password=${encodeURIComponent(STATE.password)}&chunk=${STATE.currentChunk}&chunkSize=${CONFIG.CHUNK_SIZE}`);
     const json = await res.json();
+    
     if (json.status === "success") {
-      STATE.originalData = json.data;
+      if (STATE.currentChunk === 0) {
+        STATE.originalData = json.data || [];
+      } else {
+        STATE.originalData = STATE.originalData.concat(json.data || []);
+      }
+      
+      STATE.hasMoreData = json.hasMoreData !== false;
       STATE.currentFilteredData = STATE.originalData;
       populateFilters();
       reapplyFiltersAndSort();
-      renderCharts();
+      
+      if (STATE.currentChunk === 0) {
+        renderCharts();
+      }
+      
+      // Set up infinite scroll for first load
+      if (STATE.currentChunk === 0) {
+        setupInfiniteScroll();
+      }
     }
   } catch (err) {
     console.error("Error fetching train data:", err);
   }
+}
+
+function setupInfiniteScroll() {
+  const tbody = document.querySelector("#trainTable tbody");
+  
+  if (tbody.dataset.observerSetup) return;
+  tbody.dataset.observerSetup = "true";
+  
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting && STATE.hasMoreData && !STATE.isLoadingMore) {
+        STATE.isLoadingMore = true;
+        STATE.currentChunk++;
+        document.getElementById("loadingIndicator").classList.add("show");
+        fetchDataAndRender().then(() => {
+          STATE.isLoadingMore = false;
+          document.getElementById("loadingIndicator").classList.remove("show");
+        });
+      }
+    });
+  });
+  
+  observer.observe(tbody);
 }
 
 function populateFilters() {
@@ -813,11 +980,10 @@ function hashColor(str) {
 // ==================== INITIALIZATION ====================
 function init() {
   applySavedUnits();
-  initNavigation();
-  setupControls();
-  fetchDataAndRender();
+  setupToggleSidebar();
+  initLoginUI();
+}
   setupWebSocket();
   console.log("Application initialized. docx loaded?", !!window.docx);
-}
 
 document.addEventListener("DOMContentLoaded", init);
