@@ -253,7 +253,7 @@ function setupInfiniteScroll() {
   window._scrollListenerSetup = true;
   
   // Use window scroll event instead of IntersectionObserver
-  window.addEventListener("scroll", handleScroll);
+  window.addEventListener("scroll", handleScroll, true);
   console.log("Infinite scroll listener setup complete");
 }
 
@@ -263,7 +263,10 @@ function handleScroll() {
   const pageHeight = document.documentElement.scrollHeight;
   const distanceFromBottom = pageHeight - scrollPosition;
   
+  console.log("Scroll event:", { scrollPosition, pageHeight, distanceFromBottom, hasMore: STATE.hasMoreData, isLoading: STATE.isLoadingMore });
+  
   if (distanceFromBottom < 1000 && STATE.hasMoreData && !STATE.isLoadingMore) {
+    console.log("Loading more data - chunk:", STATE.currentChunk + 1);
     STATE.isLoadingMore = true;
     STATE.currentChunk++;
     const loadingIndicator = document.getElementById("loadingIndicator");
@@ -1018,7 +1021,7 @@ function init() {
   setupToggleSidebar();
   initLoginUI();
 }
-  setupWebSocket();
-  console.log("Application initialized. docx loaded?", !!window.docx);
+  // setupWebSocket();
+  // console.log("Application initialized. docx loaded?", !!window.docx);
 
 document.addEventListener("DOMContentLoaded", init);
