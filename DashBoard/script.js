@@ -235,8 +235,8 @@ async function fetchDataAndRender() {
       
       if (STATE.currentChunk === 0) {
         renderCharts();
-        // Setup scroll listener immediately after first data load
-        setupInfiniteScroll();
+        // Setup scroll listener AFTER rendering completes
+        setTimeout(() => setupInfiniteScroll(), 100);
       }
     }
   } catch (err) {
@@ -245,29 +245,30 @@ async function fetchDataAndRender() {
 }
 
 function setupInfiniteScroll() {
-  // Only setup once
-  if (window._scrollListenerSetup) {
-    console.log("Scroll listener already setup, skipping");
-    return;
-  }
-  
-  console.log("🎯 Setting up infinite scroll listener");
+  if (window._scrollListenerSetup) return;
   window._scrollListenerSetup = true;
   
-  // Use window scroll event - without capture phase
-  window.addEventListener("scroll", handleScroll);
-  document.addEventListener("scroll", handleScroll);
+  console.log("🎯 Setting up scroll listener - attaching to window");
   
-  // Debug info
+  // Test with a super simple listener first
+  const testListener = () => {
+    console.log("✅ SCROLL EVENT FIRED!");
+  };
+  
+  window.addEventListener("scroll", testListener);
+  
   setTimeout(() => {
-    console.log("📊 Page dimensions:");
-    console.log("  documentElement.scrollHeight:", document.documentElement.scrollHeight);
-    console.log("  document.body.scrollHeight:", document.body.scrollHeight);
-    console.log("  window.innerHeight:", window.innerHeight);
-    console.log("  body overflow:", window.getComputedStyle(document.body).overflow);
-    console.log("  html overflow:", window.getComputedStyle(document.documentElement).overflow);
-    console.log("  _scrollListenerSetup flag:", window._scrollListenerSetup);
-  }, 100);
+    console.log("📊 Page info:");
+    console.log("  scrollHeight:", document.documentElement.scrollHeight);
+    console.log("  clientHeight:", document.documentElement.clientHeight);
+    console.log("  Scrollable?:", document.documentElement.scrollHeight > window.innerHeight);
+    console.log("  body height:", document.body.offsetHeight);
+    
+    // Remove test listener and add real one
+    window.removeEventListener("scroll", testListener);
+    window.addEventListener("scroll", handleScroll);
+    console.log("Real scroll listener attached");
+  }, 200);
 }
 
 function handleScroll() {
@@ -275,34 +276,20 @@ function handleScroll() {
   const pageHeight = document.documentElement.scrollHeight;
   const distanceFromBottom = pageHeight - scrollPosition;
   
-  // Only log periodically to reduce spam
-  if (!window._scrollLogCounter) window._scrollLogCounter = 0;
-  window._scrollLogCounter++;
-  
-  if (window._scrollLogCounter % 5 === 0) {
-    console.log(`📍 Scroll event #${window._scrollLogCounter}: distance from bottom = ${Math.round(distanceFromBottom)}px`);
-  }
-  
-  // Check conditions
-  if (distanceFromBottom < 1000) {
-    console.log(`⚠️ Within 1000px of bottom! hasMore=${STATE.hasMoreData}, isLoading=${STATE.isLoadingMore}`);
-  }
+  // Log every scroll event
+  console.log(`📍 SCROLL: ${Math.round(distanceFromBottom)}px from bottom`);
   
   if (distanceFromBottom < 1000 && STATE.hasMoreData && !STATE.isLoadingMore) {
-    console.log("🔄 TRIGGERING LOAD MORE - Loading chunk", STATE.currentChunk + 1);
+    console.log("🔄 LOAD MORE TRIGGERED");
     STATE.isLoadingMore = true;
     STATE.currentChunk++;
     const loadingIndicator = document.getElementById("loadingIndicator");
-    if (loadingIndicator) {
-      loadingIndicator.classList.add("show");
-    }
+    if (loadingIndicator) loadingIndicator.classList.add("show");
     
     fetchDataAndRender().then(() => {
       STATE.isLoadingMore = false;
       const loadingIndicator = document.getElementById("loadingIndicator");
-      if (loadingIndicator) {
-        loadingIndicator.classList.remove("show");
-      }
+      if (loadingIndicator) loadingIndicator.classList.remove("show");
     }).catch(err => {
       STATE.isLoadingMore = false;
       console.error("❌ Error loading more data:", err);
