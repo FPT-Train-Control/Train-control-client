@@ -891,9 +891,27 @@ async function exportReportDOCX(tableData, filterTuyenValue, filterTenTauValue, 
 // ==================== CHARTS ====================
 function renderCharts() {
   destroyCharts();
-  renderAvgSpeedChart();
-  renderTripCountChart();
-  renderSpeedPerDayChart();
+  try {
+    console.log("📊 Rendering avg speed chart...");
+    renderAvgSpeedChart();
+    console.log("✅ Avg speed chart rendered");
+  } catch (e) {
+    console.error("❌ Error in avg speed chart:", e);
+  }
+  try {
+    console.log("📊 Rendering trip count chart...");
+    renderTripCountChart();
+    console.log("✅ Trip count chart rendered");
+  } catch (e) {
+    console.error("❌ Error in trip count chart:", e);
+  }
+  try {
+    console.log("📊 Rendering speed per day chart...");
+    renderSpeedPerDayChart();
+    console.log("✅ Speed per day chart rendered");
+  } catch (e) {
+    console.error("❌ Error in speed per day chart:", e);
+  }
 }
 
 function destroyCharts() {
@@ -907,13 +925,20 @@ function renderAvgSpeedChart() {
   STATE.originalData.forEach(item => {
     const train = item["Tên Tàu"];
     const speed = Number(item["Vận Tốc"]);
-    trainSpeeds[train] = (trainSpeeds[train] || 0) + speed;
-    trainCounts[train] = (trainCounts[train] || 0) + 1;
+    if (!isNaN(speed) && isFinite(speed)) {
+      trainSpeeds[train] = (trainSpeeds[train] || 0) + speed;
+      trainCounts[train] = (trainCounts[train] || 0) + 1;
+    }
   });
 
   const trainNames = Object.keys(trainSpeeds);
+  if (trainNames.length === 0) {
+    console.warn("No valid train speed data to render");
+    return;
+  }
   const avgSpeeds = trainNames.map(name => (trainSpeeds[name] / trainCounts[name]).toFixed(2));
-  const globalAvgSpeed = (avgSpeeds.reduce((sum, val) => sum + parseFloat(val), 0) / avgSpeeds.length).toFixed(2);
+  const validAvgSpeeds = avgSpeeds.filter(v => !isNaN(parseFloat(v)));
+  const globalAvgSpeed = (validAvgSpeeds.length > 0 ? (validAvgSpeeds.reduce((sum, val) => sum + parseFloat(val), 0) / validAvgSpeeds.length) : 0).toFixed(2);
 
   const ctx = document.getElementById('avgSpeedChart').getContext('2d');
   STATE.chartInstances.avgSpeed = new Chart(ctx, {
@@ -945,10 +970,18 @@ function renderAvgSpeedChart() {
 function renderTripCountChart() {
   const trainCounts = {};
   STATE.originalData.forEach(item => {
-    trainCounts[item["Tên Tàu"]] = (trainCounts[item["Tên Tàu"]] || 0) + 1;
+    const train = item["Tên Tàu"];
+    if (train) {
+      trainCounts[train] = (trainCounts[train] || 0) + 1;
+    }
   });
 
-  const globalTripAvg = (Object.values(trainCounts).reduce((a, b) => a + b, 0) / Object.values(trainCounts).length).toFixed(2);
+  if (Object.keys(trainCounts).length === 0) {
+    console.warn("No valid train count data to render");
+    return;
+  }
+  const tripCounts = Object.values(trainCounts);
+  const globalTripAvg = (tripCounts.reduce((a, b) => a + b, 0) / tripCounts.length).toFixed(2);
 
   const ctx = document.getElementById('tripCountChart').getContext('2d');
   STATE.chartInstances.tripCount = new Chart(ctx, {
@@ -981,12 +1014,21 @@ function renderSpeedPerDayChart() {
   const trainDateSpeedMap = {};
   STATE.originalData.forEach(item => {
     const train = item["Tên Tàu"];
-    const date = new Date(item["Ngày Đến"]).toISOString().split("T")[0];
-    const speed = Number(item["Vận Tốc"]);
-    const key = `${train}_${date}`;
-    if (!trainDateSpeedMap[key]) trainDateSpeedMap[key] = { sum: 0, count: 0 };
-    trainDateSpeedMap[key].sum += speed;
-    trainDateSpeedMap[key].count += 1;
+    try {
+      const dateValue = item["Ngày Đến"];
+      if (!dateValue) return;  // Skip if no date
+      const dateObj = new Date(dateValue);
+      if (isNaN(dateObj.getTime())) return;  // Skip if invalid date
+      const date = dateObj.toISOString().split("T")[0];
+      const speed = Number(item["Vận Tốc"]);
+      if (isNaN(speed)) return;  // Skip if invalid speed
+      const key = `${train}_${date}`;
+      if (!trainDateSpeedMap[key]) trainDateSpeedMap[key] = { sum: 0, count: 0 };
+      trainDateSpeedMap[key].sum += speed;
+      trainDateSpeedMap[key].count += 1;
+    } catch (e) {
+      console.warn("Skipping invalid record:", item, e);
+    }
   });
 
   const trainDateGroups = {};
