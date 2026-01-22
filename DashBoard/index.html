@@ -180,7 +180,7 @@
       }
       
       .toggle-sidebar-btn {
-        display: none;
+        display: block;
         position: fixed;
         top: 20px;
         left: 20px;
@@ -191,10 +191,10 @@
         border-radius: 4px;
         cursor: pointer;
         z-index: 400;
+        transition: all 0.3s;
       }
       
       body.sidebar-active .toggle-sidebar-btn {
-        display: block;
         left: 220px;
       }
       

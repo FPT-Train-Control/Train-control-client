@@ -62,6 +62,15 @@ function initLoginUI() {
   if (savedUsername && savedPassword) {
     STATE.username = savedUsername;
     STATE.password = savedPassword;
+    // Show "Logging in..." message
+    loginModal.classList.remove("hidden");
+    loginForm.style.display = "none";
+    const loggingInMsg = document.createElement("div");
+    loggingInMsg.id = "loggingInMessage";
+    loggingInMsg.style.textAlign = "center";
+    loggingInMsg.style.padding = "20px";
+    loggingInMsg.innerHTML = "<p style='font-size: 18px; color: #333;'>Đang đăng nhập...</p><div class='spinner' style='margin-top: 20px;'></div>";
+    loginModal.querySelector(".login-container").appendChild(loggingInMsg);
     verifyLoginAndInit();
     return;
   }
@@ -98,6 +107,7 @@ function initLoginUI() {
 function verifyLoginAndInit() {
   const loginModal = document.getElementById("loginModal");
   const loginError = document.getElementById("loginError");
+  const loginForm = document.getElementById("loginForm");
   
   fetch(`${CONFIG.GAS_URL}?action=login&username=${encodeURIComponent(STATE.username)}&password=${encodeURIComponent(STATE.password)}`)
     .then(res => res.json())
@@ -105,17 +115,26 @@ function verifyLoginAndInit() {
       if (data.status === "success") {
         STATE.station = data.user.station;
         loginModal.classList.add("hidden");
+        const loggingInMsg = document.getElementById("loggingInMessage");
+        if (loggingInMsg) loggingInMsg.remove();
+        loginForm.style.display = "";
         initAfterLogin();
       } else {
         localStorage.removeItem("trainUsername");
         localStorage.removeItem("trainPassword");
         loginError.textContent = "Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.";
+        loginForm.style.display = "";
+        const loggingInMsg = document.getElementById("loggingInMessage");
+        if (loggingInMsg) loggingInMsg.remove();
         loginModal.classList.remove("hidden");
       }
     })
     .catch(err => {
       console.error("Verification error:", err);
       loginError.textContent = "Lỗi kết nối. Vui lòng thử lại.";
+      loginForm.style.display = "";
+      const loggingInMsg = document.getElementById("loggingInMessage");
+      if (loggingInMsg) loggingInMsg.remove();
     });
 }
 
@@ -229,31 +248,40 @@ async function fetchDataAndRender() {
 }
 
 function setupInfiniteScroll() {
-  let scrollListener;
+  // Only setup once
+  if (window._scrollListenerSetup) return;
+  window._scrollListenerSetup = true;
   
-  // Remove previous listener if exists
-  if (window._scrollListener) {
-    window.removeEventListener("scroll", window._scrollListener);
-  }
+  // Use window scroll event instead of IntersectionObserver
+  window.addEventListener("scroll", handleScroll);
+  console.log("Infinite scroll listener setup complete");
+}
+
+function handleScroll() {
+  // Check if scrolled close to bottom (within 1000px)
+  const scrollPosition = window.innerHeight + window.scrollY;
+  const pageHeight = document.documentElement.scrollHeight;
+  const distanceFromBottom = pageHeight - scrollPosition;
   
-  scrollListener = () => {
-    // Check if scrolled close to bottom (within 500px)
-    const scrollPosition = window.innerHeight + window.scrollY;
-    const pageHeight = document.documentElement.scrollHeight;
-    
-    if (pageHeight - scrollPosition < 500 && STATE.hasMoreData && !STATE.isLoadingMore) {
-      STATE.isLoadingMore = true;
-      STATE.currentChunk++;
-      document.getElementById("loadingIndicator").classList.add("show");
-      fetchDataAndRender().then(() => {
-        STATE.isLoadingMore = false;
-        document.getElementById("loadingIndicator").classList.remove("show");
-      });
+  if (distanceFromBottom < 1000 && STATE.hasMoreData && !STATE.isLoadingMore) {
+    STATE.isLoadingMore = true;
+    STATE.currentChunk++;
+    const loadingIndicator = document.getElementById("loadingIndicator");
+    if (loadingIndicator) {
+      loadingIndicator.classList.add("show");
     }
-  };
-  
-  window._scrollListener = scrollListener;
-  window.addEventListener("scroll", scrollListener);
+    
+    fetchDataAndRender().then(() => {
+      STATE.isLoadingMore = false;
+      const loadingIndicator = document.getElementById("loadingIndicator");
+      if (loadingIndicator) {
+        loadingIndicator.classList.remove("show");
+      }
+    }).catch(err => {
+      STATE.isLoadingMore = false;
+      console.error("Error loading more data:", err);
+    });
+  }
 }
 
 function populateFilters() {
