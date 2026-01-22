@@ -93,7 +93,7 @@ function initLoginUI() {
         localStorage.setItem("trainUsername", username);
         localStorage.setItem("trainPassword", password);
         loginModal.classList.add("hidden");
-        initAfterLogin();
+        await initAfterLogin();
       } else {
         loginError.textContent = "Tên đăng nhập hoặc mật khẩu không chính xác";
       }
@@ -138,7 +138,9 @@ function verifyLoginAndInit() {
     });
 }
 
-function initAfterLogin() {
+async function initAfterLogin() {
+  console.log("🔐 initAfterLogin called");
+  
   document.body.classList.add("sidebar-active");
   document.getElementById("sidebar").classList.add("active");
   document.getElementById("sidebarUsername").textContent = STATE.username;
@@ -151,10 +153,16 @@ function initAfterLogin() {
   STATE.displayedRowCount = 0;
   STATE.hasMoreData = true;
   
-  fetchDataAndRender();
+  console.log("📡 Calling fetchDataAndRender");
+  await fetchDataAndRender();
+  console.log("✅ fetchDataAndRender complete");
+  console.log("🎬 Calling initNavigation");
   initNavigation();
+  console.log("⚙️ Calling setupControls");
   setupControls();
+  console.log("📡 Calling setupWebSocket");
   setupWebSocket();
+  console.log("✅ initAfterLogin complete");
 }
 
 function setupSidebarMenu() {
@@ -217,9 +225,13 @@ function switchSection(button, navButtons) {
 
 // ==================== DATA MANAGEMENT ====================
 async function fetchDataAndRender() {
+  console.log("📡 fetchDataAndRender called - chunk:", STATE.currentChunk);
   try {
-    const res = await fetch(`${CONFIG.GAS_URL}?action=fetch&username=${encodeURIComponent(STATE.username)}&password=${encodeURIComponent(STATE.password)}&chunk=${STATE.currentChunk}&chunkSize=${CONFIG.CHUNK_SIZE}`);
+    const url = `${CONFIG.GAS_URL}?action=fetch&username=${encodeURIComponent(STATE.username)}&password=${encodeURIComponent(STATE.password)}&chunk=${STATE.currentChunk}&chunkSize=${CONFIG.CHUNK_SIZE}`;
+    console.log("📡 Fetching from:", url);
+    const res = await fetch(url);
     const json = await res.json();
+    console.log("📡 Response:", json);
     
     if (json.status === "success") {
       if (STATE.currentChunk === 0) {
@@ -230,17 +242,24 @@ async function fetchDataAndRender() {
       
       STATE.hasMoreData = json.hasMoreData !== false;
       STATE.currentFilteredData = STATE.originalData;
+      console.log("📊 Data loaded:", STATE.originalData.length, "items, hasMoreData:", STATE.hasMoreData);
+      
       populateFilters();
       reapplyFiltersAndSort();
       
       if (STATE.currentChunk === 0) {
+        console.log("📊 Rendering charts");
         renderCharts();
         // Setup scroll listener AFTER rendering completes
-        setTimeout(() => setupInfiniteScroll(), 100);
+        console.log("⏰ Scheduling setupInfiniteScroll in 100ms");
+        setTimeout(() => {
+          console.log("⏰ 100ms timer fired, calling setupInfiniteScroll");
+          setupInfiniteScroll();
+        }, 100);
       }
     }
   } catch (err) {
-    console.error("Error fetching train data:", err);
+    console.error("❌ Error fetching train data:", err);
   }
 }
 
@@ -326,10 +345,12 @@ function populateFilters() {
 }
 
 function reapplyFiltersAndSort() {
+  console.log("🔄 reapplyFiltersAndSort called");
   filterAndSearch();
   if (STATE.currentSort.key) {
     sortBy(STATE.currentSort.key);
   }
+  console.log("🔄 reapplyFiltersAndSort complete, data displayed");
 }
 
 // ==================== FILTERING & SEARCHING ====================
