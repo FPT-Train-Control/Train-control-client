@@ -29,12 +29,14 @@ const STATE = {
   username: null,
   password: null,
   station: null,
+  allowedStations: [],
   originalData: [],
   currentFilteredData: [],
   currentSort: { key: "", asc: true },
   ws: null,
-  servoState: null,
-  autoState: null,
+  mqtt: null,
+  mqttConnected: false,
+  stationStates: {},
   chartInstances: {
     mainAnalysis: null,
     stationCharts: {}
@@ -159,6 +161,9 @@ async function initAfterLogin() {
   STATE.displayedRowCount = 0;
   STATE.hasMoreData = true;
   
+  // Extract allowed stations from login response
+  STATE.allowedStations = [STATE.station]; // At minimum, the user's own station
+  
   console.log("📡 Calling fetchDataAndRender");
   await fetchDataAndRender();
   console.log("✅ fetchDataAndRender complete");
@@ -166,8 +171,8 @@ async function initAfterLogin() {
   initNavigation();
   console.log("⚙️ Calling setupControls");
   setupControls();
-  console.log("📡 Calling setupWebSocket");
-  setupWebSocket();
+  console.log("📡 Calling initializeDashboard (MQTT)");
+  initializeDashboard();
   console.log("✅ initAfterLogin complete");
 }
 
@@ -500,12 +505,250 @@ function parseTimeString(excelTimeStr) {
   return null;
 }
 
+// ==================== MQTT SETUP ====================
+function setupMQTT() {
+  console.log("🔌 Setting up MQTT connection to HiveMQ...");
+  
+  // HiveMQ Cloud credentials
+  const MQTT_BROKER = "ebb274b1a6024d7bb86a001c1083dd3a.s1.eu.hivemq.cloud";
+  const MQTT_PORT = 8884;
+  const MQTT_URL = `wss://${MQTT_BROKER}:${MQTT_PORT}/mqtt`;
+  
+  // Using example credentials (you should replace with actual ones)
+  const MQTT_USERNAME = "train_system";
+  const MQTT_PASSWORD = "Train@123";
+  
+  const options = {
+    protocol: 'wss',
+    username: MQTT_USERNAME,
+    password: MQTT_PASSWORD,
+    clientId: `web_client_${Date.now()}`,
+    clean: true,
+    reconnectPeriod: 5000,
+    connectTimeout: 30000
+  };
+
+  try {
+    STATE.mqtt = mqtt.connect(MQTT_URL, options);
+    
+    STATE.mqtt.on('connect', () => {
+      console.log("✅ MQTT Connected!");
+      STATE.mqttConnected = true;
+      updateMQTTStatus(true);
+      
+      // Subscribe to allowed station topics
+      STATE.allowedStations.forEach(station => {
+        const topic = `train/station/${station}/state`;
+        STATE.mqtt.subscribe(topic, (err) => {
+          if (err) {
+            console.error(`Failed to subscribe to ${topic}:`, err);
+          } else {
+            console.log(`✓ Subscribed to ${topic}`);
+          }
+        });
+      });
+    });
+    
+    STATE.mqtt.on('message', handleMQTTMessage);
+    
+    STATE.mqtt.on('disconnect', () => {
+      console.warn("MQTT disconnected");
+      STATE.mqttConnected = false;
+      updateMQTTStatus(false);
+    });
+    
+    STATE.mqtt.on('error', (err) => {
+      console.error("MQTT error:", err);
+      STATE.mqttConnected = false;
+      updateMQTTStatus(false);
+    });
+  } catch (err) {
+    console.error("Failed to create MQTT client:", err);
+    STATE.mqttConnected = false;
+    updateMQTTStatus(false);
+  }
+}
+
+function updateMQTTStatus(connected) {
+  const statusDot = document.getElementById("mqttStatusDot");
+  const statusText = document.getElementById("mqttStatusText");
+  
+  if (statusDot) {
+    statusDot.className = "status-dot " + (connected ? "connected" : "disconnected");
+  }
+  if (statusText) {
+    statusText.textContent = connected ? "🟢 MQTT Kết nối" : "🔴 MQTT Ngắt kết nối";
+  }
+}
+
+function handleMQTTMessage(topic, message) {
+  console.log(`📨 MQTT Message - Topic: ${topic}, Message: ${message.toString()}`);
+  
+  // Parse station from topic: train/station/{station}/state
+  const topicParts = topic.split('/');
+  if (topicParts.length >= 4 && topicParts[0] === 'train' && topicParts[1] === 'station') {
+    const station = topicParts[2];
+    const messageStr = message.toString();
+    
+    try {
+      const data = JSON.parse(messageStr);
+      if (data.barrier !== undefined) {
+        STATE.stationStates[station] = {
+          barrier: data.barrier,
+          auto: data.auto !== undefined ? data.auto : STATE.stationStates[station]?.auto
+        };
+        updateStationControlUI(station);
+      }
+    } catch (e) {
+      console.warn("Failed to parse MQTT message:", e);
+    }
+  }
+}
+
+function initializeDashboard() {
+  console.log("Initializing dashboard with allowed stations:", STATE.allowedStations);
+  setupMQTT();
+  renderStationControls();
+  setupControlListeners();
+}
+
+function renderStationControls() {
+  const container = document.getElementById("stationControlsContainer");
+  container.innerHTML = "";
+  
+  if (STATE.allowedStations.length === 0) {
+    container.innerHTML = "<p style='text-align: center; color: #999;'>Không có trạm được phép quản lý</p>";
+    return;
+  }
+  
+  STATE.allowedStations.forEach(station => {
+    // Initialize station state if not exists
+    if (!STATE.stationStates[station]) {
+      STATE.stationStates[station] = { barrier: 0, auto: false };
+    }
+    
+    const card = document.createElement("div");
+    card.className = "station-control-card";
+    card.id = `stationCard_${station.replace(/\s+/g, '_')}`;
+    
+    card.innerHTML = `
+      <h3>🏢 Trạm ${station}</h3>
+      
+      <div class="control-section">
+        <h4>🚧 Điều Khiển Barrier</h4>
+        <div class="control-status">
+          <span class="control-status-label">Trạng Thái:</span>
+          <span class="status-badge" id="barrierStatus_${station.replace(/\s+/g, '_')}">Chưa Biết</span>
+        </div>
+        <button class="control-button" id="barrierControl_${station.replace(/\s+/g, '_')}">Chuyển Đổi Barrier</button>
+      </div>
+      
+      <div class="control-section">
+        <h4>⚙️ Chế Độ Tự Động</h4>
+        <div class="control-status">
+          <span class="control-status-label">Trạng Thái:</span>
+          <span class="status-badge" id="autoStatus_${station.replace(/\s+/g, '_')}">Chế Độ Thủ Công</span>
+        </div>
+        <button class="control-button" id="autoControl_${station.replace(/\s+/g, '_')}">Bật Chế Độ Tự Động</button>
+      </div>
+    `;
+    
+    container.appendChild(card);
+    updateStationControlUI(station);
+  });
+}
+
+function updateStationControlUI(station) {
+  const state = STATE.stationStates[station];
+  if (!state) return;
+  
+  const safeName = station.replace(/\s+/g, '_');
+  
+  // Update barrier status
+  const barrierStatusEl = document.getElementById(`barrierStatus_${safeName}`);
+  const barrierBtnEl = document.getElementById(`barrierControl_${safeName}`);
+  
+  if (barrierStatusEl) {
+    if (state.barrier === 1 || state.barrier === "1" || state.barrier === true) {
+      barrierStatusEl.textContent = "🟢 Mở";
+      barrierStatusEl.className = "status-badge open";
+      if (barrierBtnEl) barrierBtnEl.textContent = "Hạ Barrier";
+    } else {
+      barrierStatusEl.textContent = "🔴 Đóng";
+      barrierStatusEl.className = "status-badge closed";
+      if (barrierBtnEl) barrierBtnEl.textContent = "Nâng Barrier";
+    }
+  }
+  
+  // Update auto status
+  const autoStatusEl = document.getElementById(`autoStatus_${safeName}`);
+  const autoBtnEl = document.getElementById(`autoControl_${safeName}`);
+  
+  if (autoStatusEl) {
+    if (state.auto === 1 || state.auto === "1" || state.auto === true) {
+      autoStatusEl.textContent = "🟢 Tự Động";
+      autoStatusEl.className = "status-badge open";
+      if (autoBtnEl) autoBtnEl.textContent = "Chuyển Sang Thủ Công";
+    } else {
+      autoStatusEl.textContent = "🔴 Thủ Công";
+      autoStatusEl.className = "status-badge closed";
+      if (autoBtnEl) autoBtnEl.textContent = "Bật Chế Độ Tự Động";
+    }
+  }
+}
+
+function setupControlListeners() {
+  STATE.allowedStations.forEach(station => {
+    const safeName = station.replace(/\s+/g, '_');
+    
+    const barrierBtn = document.getElementById(`barrierControl_${safeName}`);
+    const autoBtn = document.getElementById(`autoControl_${safeName}`);
+    
+    if (barrierBtn) {
+      barrierBtn.addEventListener("click", () => {
+        sendMQTTCommand(station, 'barrier', !STATE.stationStates[station].barrier);
+      });
+    }
+    
+    if (autoBtn) {
+      autoBtn.addEventListener("click", () => {
+        sendMQTTCommand(station, 'auto', !STATE.stationStates[station].auto);
+      });
+    }
+  });
+}
+
+function sendMQTTCommand(station, command, value) {
+  if (!STATE.mqtt || !STATE.mqttConnected) {
+    console.error("MQTT not connected");
+    alert("MQTT chưa kết nối. Vui lòng thử lại.");
+    return;
+  }
+  
+  const topic = `train/station/${station}/control`;
+  const message = JSON.stringify({
+    command: command,
+    value: value ? 1 : 0,
+    timestamp: new Date().toISOString()
+  });
+  
+  STATE.mqtt.publish(topic, message, { qos: 1 }, (err) => {
+    if (err) {
+      console.error(`Failed to publish to ${topic}:`, err);
+      alert(`Lỗi: ${err.message}`);
+    } else {
+      console.log(`✓ Command sent to ${station}: ${command} = ${value}`);
+    }
+  });
+}
+
 // ==================== WEBSOCKET ====================
 function setupWebSocket() {
   STATE.ws = new WebSocket(CONFIG.WS_URL);
 
   STATE.ws.onopen = () => {
     console.log("WebSocket connected.");
+
     sendJSON({ command: "barrier_state_request" });
     sendJSON({ command: "auto_state_request" });
   };
@@ -640,40 +883,41 @@ function updateautoUI() {
 
 // ==================== CONTROLS ====================
 function setupControls() {
-  // Servo/Barrier control
-  document.getElementById("servoToggle").addEventListener("click", () => {
-    if (STATE.ws?.readyState === WebSocket.OPEN && STATE.servoState !== null) {
-      const command = STATE.servoState === CONFIG.BARRIER_STATES.OPEN ? "close_barrier" : "open_barrier";
-      sendJSON({ command });
-    }
-  });
-
-  // Auto system control
-  document.getElementById("autoToggle").addEventListener("click", () => {
-    if (STATE.ws?.readyState === WebSocket.OPEN && STATE.autoState !== null) {
-      const nextStateBool = !(STATE.autoState === CONFIG.AUTO_STATES.ON);
-      sendJSON({ command: "set_auto_state", state: nextStateBool });
-    }
-  });
-
-  // Settings form
+  // Settings form for MQTT commands
   const toggleBtn = document.querySelector('.toggle-form-btn');
   const form = document.getElementById('settingsForm');
-  toggleBtn.addEventListener('click', () => form.classList.toggle('hidden'));
+  
+  if (toggleBtn && form) {
+    toggleBtn.addEventListener('click', () => form.classList.toggle('hidden'));
 
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const payload = { command: "update_warning" };
-    const distance = Number(document.getElementById('distance').value || "NaN");
-    const warning1 = Number(document.getElementById('delay1').value || "NaN");
-    const warning2 = Number(document.getElementById('delay2').value || "NaN");
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const distance = Number(document.getElementById('distance').value || "NaN");
+      const warning1 = Number(document.getElementById('delay1').value || "NaN");
+      const warning2 = Number(document.getElementById('delay2').value || "NaN");
 
-    if (!isNaN(distance)) payload.distance = distance;
-    if (!isNaN(warning1)) payload.warning1 = warning1;
-    if (!isNaN(warning2)) payload.warning2 = warning2;
+      const payload = {
+        distance: !isNaN(distance) ? distance : undefined,
+        warning1: !isNaN(warning1) ? warning1 : undefined,
+        warning2: !isNaN(warning2) ? warning2 : undefined
+      };
 
-    sendJSON(payload);
-  });
+      // Send settings via MQTT to all allowed stations
+      STATE.allowedStations.forEach(station => {
+        const topic = `train/station/${station}/settings`;
+        const message = JSON.stringify({
+          ...payload,
+          timestamp: new Date().toISOString()
+        });
+        
+        if (STATE.mqtt && STATE.mqttConnected) {
+          STATE.mqtt.publish(topic, message, { qos: 1 });
+        }
+      });
+      
+      alert("Cài đặt đã được lưu!");
+    });
+  }
 
   // Search and filter controls
   document.getElementById("searchInput").addEventListener("input", filterAndSearch);

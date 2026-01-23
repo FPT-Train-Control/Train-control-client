@@ -14,6 +14,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- docx -->
     <script src="https://unpkg.com/docx@7.1.0/build/index.js"></script>
+    <!-- MQTT.js for HiveMQ WebSocket -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mqtt/5.3.0/mqtt.min.js"></script>
     <style>
       /* Login Modal */
       #loginModal {
@@ -321,6 +323,14 @@
     <div id="sectionPhanTich" style="display:none;">
       <h1>📊 Phân Tích Dữ Liệu</h1>
       
+      <!-- Data Loading Controls -->
+      <div class="data-loading-section">
+        <div class="data-info">
+          <span id="dataLoadingStatus">Đã tải: <strong id="dataCountDisplay">0</strong> bản ghi</span>
+          <button id="loadMoreDataBtn" class="btn-load-more">📥 Tải Thêm Dữ Liệu</button>
+        </div>
+      </div>
+      
       <!-- Main Analysis Section -->
       <div class="analysis-main-container">
         <div class="analysis-filters">
@@ -361,14 +371,6 @@
         </div>
       </div>
 
-      <!-- Data Loading Controls -->
-      <div class="data-loading-section">
-        <div class="data-info">
-          <span id="dataLoadingStatus">Đã tải: <strong id="dataCountDisplay">0</strong> bản ghi</span>
-          <button id="loadMoreDataBtn" class="btn-load-more">📥 Tải Thêm Dữ Liệu</button>
-        </div>
-      </div>
-
       <!-- Station-Based Charts Section -->
       <div class="station-charts-section">
         <h2>📍 Phân Tích Theo Trạm</h2>
@@ -378,46 +380,31 @@
       </div>
     </div>
     <div id="sectionBangDieuKhien" style="display:none;">
-      <h1>Bảng Điều Khiển</h1>
-      <div>
-        <div class="dashboard-controls">
-          <h3>🚧 Barrier</h3>
-          <div>
-            <div>
-              <div>
-                <div>Trạng thái</div>
-                <span id="servoStateLabel"></span>
-              </div>
-              <img id="servoSatateLabelImg" src="./Barrier Open.png">
-            </div>
-            <button id="servoToggle">Đang tải trạng thái...</button>
-          </div>
+      <h1>⚙️ Bảng Điều Khiển</h1>
+      
+      <!-- MQTT Connection Status -->
+      <div class="mqtt-status-section">
+        <div class="mqtt-status-indicator">
+          <span class="status-dot" id="mqttStatusDot"></span>
+          <span id="mqttStatusText">Đang kết nối MQTT...</span>
         </div>
-        <div class="dashboard-controls">
-          <h3>⚙️ Tự Động</h3>
-          <div>
-            <div>
-              <div>
-                <div>Trạng thái</div>
-                <span id="autoStateLabel"></span>
-              </div>
-              <img id="autoSatateLabelImg" src="./Automation.gif">
-            </div>
-            <button id="autoToggle">Đang tải trạng thái...</button>
-          </div>
-        </div>
-        <div class="collapsible-container">
-          <button class="toggle-form-btn">⚙️ Cài Đặt</button>
-          <form id="settingsForm" class="hidden">
-            <label for="distance">Khoảng cách K1 → K2 (m):</label>
-            <input type="number" id="distance" name="distance" placeholder="30" required>
-            <label for="delay1">Cảnh báo sớm (s):</label>
-            <input type="number" id="delay1" name="delay1" placeholder="20" required>
-            <label for="delay2">Đóng barrier trước (s):</label>
-            <input type="number" id="delay2" name="delay2" placeholder="10" required>
-            <button type="submit">💾 Lưu</button>
-          </form>
-        </div>
+      </div>
+      
+      <!-- Station Controls Container -->
+      <div id="stationControlsContainer"></div>
+      
+      <!-- Settings -->
+      <div class="collapsible-container">
+        <button class="toggle-form-btn">⚙️ Cài Đặt</button>
+        <form id="settingsForm" class="hidden">
+          <label for="distance">Khoảng cách K1 → K2 (m):</label>
+          <input type="number" id="distance" name="distance" placeholder="30" required>
+          <label for="delay1">Cảnh báo sớm (s):</label>
+          <input type="number" id="delay1" name="delay1" placeholder="20" required>
+          <label for="delay2">Đóng barrier trước (s):</label>
+          <input type="number" id="delay2" name="delay2" placeholder="10" required>
+          <button type="submit">💾 Lưu</button>
+        </form>
       </div>
     </div>
     <script defer src="./script.js"></script>
