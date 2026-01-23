@@ -913,8 +913,48 @@ function destroyCharts() {
 // ==================== ANALYSIS SECTION INITIALIZATION ====================
 function initializeAnalysisSection() {
   setupAnalysisFilters();
+  setupLoadMoreDataButton();
+  updateDataCountDisplay();
   renderMainAnalysisChart();
   renderStationCharts();
+}
+
+function setupLoadMoreDataButton() {
+  const loadMoreBtn = document.getElementById("loadMoreDataBtn");
+  if (!loadMoreBtn) return;
+
+  loadMoreBtn.addEventListener("click", () => {
+    loadMoreBtn.disabled = true;
+    loadMoreBtn.textContent = "⏳ Đang tải...";
+    
+    STATE.currentChunk++;
+    fetchDataAndRender().then(() => {
+      updateDataCountDisplay();
+      // Refresh analysis charts after loading new data
+      renderMainAnalysisChart();
+      renderStationCharts();
+      
+      loadMoreBtn.disabled = false;
+      loadMoreBtn.textContent = STATE.hasMoreData ? "📥 Tải Thêm Dữ Liệu" : "✓ Đã tải hết";
+    }).catch(err => {
+      console.error("Error loading more data:", err);
+      loadMoreBtn.disabled = false;
+      loadMoreBtn.textContent = "📥 Tải Thêm Dữ Liệu";
+    });
+  });
+
+  // Disable button if no more data
+  if (!STATE.hasMoreData) {
+    loadMoreBtn.disabled = true;
+    loadMoreBtn.textContent = "✓ Đã tải hết";
+  }
+}
+
+function updateDataCountDisplay() {
+  const countDisplay = document.getElementById("dataCountDisplay");
+  if (countDisplay) {
+    countDisplay.textContent = STATE.originalData.length;
+  }
 }
 
 function setupAnalysisFilters() {
@@ -1339,38 +1379,51 @@ function renderStationCharts() {
 
     const card = document.createElement("div");
     card.className = "station-chart-card";
+    
+    const stationChartId = `stationChart_${station.replace(/\s+/g, '_')}`;
+    const speedLineChartId = `speedLineChart_${station.replace(/\s+/g, '_')}`;
+    
     card.innerHTML = `
       <h3>🏢 ${station}</h3>
-      <canvas id="stationChart_${station.replace(/\s+/g, '_')}" height="80"></canvas>
+      <div class="station-chart-subgrid">
+        <div class="station-chart-item">
+          <h4>🚂 Phân Bố Tàu</h4>
+          <canvas id="${stationChartId}" height="60"></canvas>
+        </div>
+        <div class="station-chart-item">
+          <h4>⚡ Tốc Độ Tàu Mới Nhất</h4>
+          <canvas id="${speedLineChartId}" height="60"></canvas>
+        </div>
+      </div>
     `;
     container.appendChild(card);
 
-    // Render station chart
+    // Render station charts
     setTimeout(() => {
-      const canvasId = `stationChart_${station.replace(/\s+/g, '_')}`;
-      const ctx = document.getElementById(canvasId);
-      if (ctx) {
-        renderStationDetailChart(ctx, station, stationData);
+      const ctx1 = document.getElementById(stationChartId);
+      const ctx2 = document.getElementById(speedLineChartId);
+      if (ctx1) {
+        renderStationDetailChart(ctx1, station, stationData);
+      }
+      if (ctx2) {
+        renderStationLatestSpeedChart(ctx2, station, stationData);
       }
     }, 0);
   });
 }
 
 function renderStationDetailChart(ctx, stationName, stationData) {
-  const trainSpeeds = {};
   const trainCounts = {};
 
   stationData.forEach(item => {
     const train = item["Tên Tàu"];
-    const speed = Number(item["Vận Tốc"]);
-    if (!isNaN(speed) && isFinite(speed)) {
-      trainSpeeds[train] = (trainSpeeds[train] || 0) + speed;
+    if (train) {
       trainCounts[train] = (trainCounts[train] || 0) + 1;
     }
   });
 
-  const trainNames = Object.keys(trainSpeeds).sort();
-  const avgSpeeds = trainNames.map(name => (trainSpeeds[name] / trainCounts[name]).toFixed(2));
+  const trainNames = Object.keys(trainCounts).sort();
+  const trainCountValues = trainNames.map(name => trainCounts[name]);
 
   const chartId = `stationChart_${stationName.replace(/\s+/g, '_')}`;
   if (STATE.chartInstances.stationCharts[chartId]) {
@@ -1383,7 +1436,7 @@ function renderStationDetailChart(ctx, stationName, stationData) {
       labels: trainNames,
       datasets: [
         {
-          data: trainNames.map((_, i) => stationData.filter(d => d["Tên Tàu"] === trainNames[i]).length),
+          data: trainCountValues,
           backgroundColor: trainNames.map(name => hashColor(name)),
           borderColor: 'white',
           borderWidth: 2
@@ -1396,14 +1449,97 @@ function renderStationDetailChart(ctx, stationName, stationData) {
       plugins: {
         legend: {
           position: 'bottom',
-          labels: { padding: 10, font: { size: 11 } }
+          labels: { padding: 8, font: { size: 10 } }
         },
         tooltip: {
           backgroundColor: 'rgba(0,0,0,0.8)',
-          padding: 10,
-          titleFont: { size: 12 },
-          bodyFont: { size: 11 }
+          padding: 8,
+          titleFont: { size: 11 },
+          bodyFont: { size: 10 }
         }
+      }
+    }
+  });
+}
+
+function renderStationLatestSpeedChart(ctx, stationName, stationData) {
+  // Get the latest entry for each train at this station
+  const trainLatestSpeed = {};
+  const trainLatestDate = {};
+
+  stationData.forEach(item => {
+    const train = item["Tên Tàu"];
+    const speed = Number(item["Vận Tốc"]);
+    const dateStr = item["Ngày Đến"];
+    const timeStr = item["Giờ Đến"];
+    
+    if (!isNaN(speed) && isFinite(speed)) {
+      const dateObj = parseDateString(dateStr);
+      const timeObj = parseTimeString(timeStr);
+      const dateTime = dateObj ? dateObj.getTime() : 0;
+      
+      if (!trainLatestDate[train] || dateTime > trainLatestDate[train]) {
+        trainLatestDate[train] = dateTime;
+        trainLatestSpeed[train] = speed;
+      }
+    }
+  });
+
+  const trainNames = Object.keys(trainLatestSpeed).sort();
+  const speeds = trainNames.map(name => trainLatestSpeed[name].toFixed(2));
+
+  const chartId = `speedLineChart_${stationName.replace(/\s+/g, '_')}`;
+  if (STATE.chartInstances.stationCharts[chartId]) {
+    STATE.chartInstances.stationCharts[chartId].destroy();
+  }
+
+  STATE.chartInstances.stationCharts[chartId] = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: trainNames,
+      datasets: [
+        {
+          label: 'Tốc Độ (km/h)',
+          data: speeds,
+          borderColor: trainNames.map(name => hashColor(name)),
+          backgroundColor: trainNames.map(name => hashColor(name) + '20'),
+          fill: true,
+          tension: 0.4,
+          pointRadius: 5,
+          pointBackgroundColor: trainNames.map(name => hashColor(name)),
+          pointBorderColor: 'white',
+          pointBorderWidth: 2,
+          pointHoverRadius: 7
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          backgroundColor: 'rgba(0,0,0,0.8)',
+          padding: 8,
+          titleFont: { size: 11 },
+          bodyFont: { size: 10 },
+          callbacks: {
+            label: function(context) {
+              return context.parsed.y.toFixed(2) + ' km/h';
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 100,
+          ticks: { font: { size: 10 } },
+          grid: { color: 'rgba(0,0,0,0.05)' }
+        },
+        x: { ticks: { font: { size: 10 } } }
       }
     }
   });
