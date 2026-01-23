@@ -319,14 +319,54 @@
       </div>
     </div>
     <div id="sectionPhanTich" style="display:none;">
-      <h1>Phân Tích Dữ Liệu</h1>
-      <div>
-        <h3>1. Tốc Độ Trung Bình Mỗi Tàu</h3>
-        <canvas id="avgSpeedChart" height="150"></canvas>
-        <h3>2. Số Chuyến Mỗi Tàu</h3>
-        <canvas id="tripCountChart" height="150"></canvas>
-        <h3>3. Tốc Độ Trung Bình Mỗi Ngày</h3>
-        <canvas id="speedPerDayChart" height="150"></canvas>
+      <h1>📊 Phân Tích Dữ Liệu</h1>
+      
+      <!-- Main Analysis Section -->
+      <div class="analysis-main-container">
+        <div class="analysis-filters">
+          <div class="filter-group">
+            <label for="analysisChartType">Loại Biểu Đồ:</label>
+            <select id="analysisChartType">
+              <option value="avgSpeed">Tốc Độ Trung Bình</option>
+              <option value="tripCount">Số Chuyến</option>
+              <option value="speedPerDay">Tốc Độ Theo Ngày</option>
+              <option value="speedComparison">So Sánh Tốc Độ</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="analysisTrainFilter">Tàu:</label>
+            <select id="analysisTrainFilter">
+              <option value="">Tất Cả</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="analysisStationFilter">Trạm:</label>
+            <select id="analysisStationFilter">
+              <option value="">Tất Cả</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="analysisDateFrom">Từ Ngày:</label>
+            <input type="date" id="analysisDateFrom">
+          </div>
+          <div class="filter-group">
+            <label for="analysisDateTo">Đến Ngày:</label>
+            <input type="date" id="analysisDateTo">
+          </div>
+          <button id="analysisApplyFilters" class="btn-apply-filters">🔄 Áp Dụng</button>
+        </div>
+        
+        <div class="analysis-main-chart">
+          <canvas id="mainAnalysisChart" height="100"></canvas>
+        </div>
+      </div>
+
+      <!-- Station-Based Charts Section -->
+      <div class="station-charts-section">
+        <h2>📍 Phân Tích Theo Trạm</h2>
+        <div id="stationChartsContainer" class="station-charts-grid">
+          <!-- Station charts will be dynamically inserted here -->
+        </div>
       </div>
     </div>
     <div id="sectionBangDieuKhien" style="display:none;">

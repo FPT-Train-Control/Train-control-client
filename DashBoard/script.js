@@ -36,15 +36,21 @@ const STATE = {
   servoState: null,
   autoState: null,
   chartInstances: {
-    avgSpeed: null,
-    tripCount: null,
-    speedPerDay: null
+    mainAnalysis: null,
+    stationCharts: {}
   },
   trainColorMap: {},
   currentChunk: 0,
   isLoadingMore: false,
   hasMoreData: true,
-  displayedRowCount: 0
+  displayedRowCount: 0,
+  analysisFilterState: {
+    chartType: 'avgSpeed',
+    train: '',
+    station: '',
+    dateFrom: '',
+    dateTo: ''
+  }
 };
 
 // ==================== AUTHENTICATION ====================
@@ -890,39 +896,127 @@ async function exportReportDOCX(tableData, filterTuyenValue, filterTenTauValue, 
 
 // ==================== CHARTS ====================
 function renderCharts() {
-  destroyCharts();
-  try {
-    console.log("📊 Rendering avg speed chart...");
-    renderAvgSpeedChart();
-    console.log("✅ Avg speed chart rendered");
-  } catch (e) {
-    console.error("❌ Error in avg speed chart:", e);
-  }
-  try {
-    console.log("📊 Rendering trip count chart...");
-    renderTripCountChart();
-    console.log("✅ Trip count chart rendered");
-  } catch (e) {
-    console.error("❌ Error in trip count chart:", e);
-  }
-  try {
-    console.log("📊 Rendering speed per day chart...");
-    renderSpeedPerDayChart();
-    console.log("✅ Speed per day chart rendered");
-  } catch (e) {
-    console.error("❌ Error in speed per day chart:", e);
-  }
+  // Initialize analysis chart on first load
+  console.log("📊 Initializing analysis section...");
+  initializeAnalysisSection();
 }
 
 function destroyCharts() {
-  Object.values(STATE.chartInstances).forEach(chart => chart?.destroy());
+  if (STATE.chartInstances.mainAnalysis) {
+    STATE.chartInstances.mainAnalysis.destroy();
+    STATE.chartInstances.mainAnalysis = null;
+  }
+  Object.values(STATE.chartInstances.stationCharts).forEach(chart => chart?.destroy());
+  STATE.chartInstances.stationCharts = {};
 }
 
-function renderAvgSpeedChart() {
+// ==================== ANALYSIS SECTION INITIALIZATION ====================
+function initializeAnalysisSection() {
+  setupAnalysisFilters();
+  renderMainAnalysisChart();
+  renderStationCharts();
+}
+
+function setupAnalysisFilters() {
+  const trainSet = new Set();
+  const stationSet = new Set();
+
+  STATE.originalData.forEach(item => {
+    if (item["Tên Tàu"]) trainSet.add(item["Tên Tàu"]);
+    if (item["Trạm"]) stationSet.add(item["Trạm"]);
+  });
+
+  const trainSelect = document.getElementById("analysisTrainFilter");
+  const stationSelect = document.getElementById("analysisStationFilter");
+
+  trainSelect.innerHTML = '<option value="">Tất Cả</option>';
+  stationSelect.innerHTML = '<option value="">Tất Cả</option>';
+
+  [...trainSet].sort().forEach(train => {
+    trainSelect.innerHTML += `<option value="${train}">${train}</option>`;
+  });
+
+  [...stationSet].sort().forEach(station => {
+    stationSelect.innerHTML += `<option value="${station}">${station}</option>`;
+  });
+
+  // Setup event listeners
+  document.getElementById("analysisChartType").addEventListener("change", renderMainAnalysisChart);
+  document.getElementById("analysisTrainFilter").addEventListener("change", renderMainAnalysisChart);
+  document.getElementById("analysisStationFilter").addEventListener("change", renderMainAnalysisChart);
+  document.getElementById("analysisApplyFilters").addEventListener("click", () => {
+    STATE.analysisFilterState.dateFrom = document.getElementById("analysisDateFrom").value;
+    STATE.analysisFilterState.dateTo = document.getElementById("analysisDateTo").value;
+    renderMainAnalysisChart();
+  });
+
+  document.getElementById("analysisDateFrom").addEventListener("change", () => {
+    STATE.analysisFilterState.dateFrom = document.getElementById("analysisDateFrom").value;
+  });
+
+  document.getElementById("analysisDateTo").addEventListener("change", () => {
+    STATE.analysisFilterState.dateTo = document.getElementById("analysisDateTo").value;
+  });
+}
+
+function getFilteredAnalysisData() {
+  const chartType = document.getElementById("analysisChartType").value;
+  const trainFilter = document.getElementById("analysisTrainFilter").value;
+  const stationFilter = document.getElementById("analysisStationFilter").value;
+  const dateFrom = document.getElementById("analysisDateFrom").value;
+  const dateTo = document.getElementById("analysisDateTo").value;
+
+  return STATE.originalData.filter(item => {
+    if (trainFilter && item["Tên Tàu"] !== trainFilter) return false;
+    if (stationFilter && item["Trạm"] !== stationFilter) return false;
+
+    if (dateFrom || dateTo) {
+      const itemDate = parseDateString(item["Ngày Đến"]);
+      if (!itemDate) return false;
+      if (dateFrom && itemDate < new Date(dateFrom)) return false;
+      if (dateTo) {
+        const toDate = new Date(dateTo);
+        toDate.setHours(23, 59, 59, 999);
+        if (itemDate > toDate) return false;
+      }
+    }
+    return true;
+  });
+}
+
+function renderMainAnalysisChart() {
+  const chartType = document.getElementById("analysisChartType").value;
+  const filteredData = getFilteredAnalysisData();
+
+  if (STATE.chartInstances.mainAnalysis) {
+    STATE.chartInstances.mainAnalysis.destroy();
+    STATE.chartInstances.mainAnalysis = null;
+  }
+
+  const ctx = document.getElementById("mainAnalysisChart");
+  if (!ctx) return;
+
+  switch (chartType) {
+    case "avgSpeed":
+      renderAvgSpeedChartNew(ctx, filteredData);
+      break;
+    case "tripCount":
+      renderTripCountChartNew(ctx, filteredData);
+      break;
+    case "speedPerDay":
+      renderSpeedPerDayChartNew(ctx, filteredData);
+      break;
+    case "speedComparison":
+      renderSpeedComparisonChart(ctx, filteredData);
+      break;
+  }
+}
+
+function renderAvgSpeedChartNew(ctx, data) {
   const trainSpeeds = {};
   const trainCounts = {};
 
-  STATE.originalData.forEach(item => {
+  data.forEach(item => {
     const train = item["Tên Tàu"];
     const speed = Number(item["Vận Tốc"]);
     if (!isNaN(speed) && isFinite(speed)) {
@@ -931,97 +1025,152 @@ function renderAvgSpeedChart() {
     }
   });
 
-  const trainNames = Object.keys(trainSpeeds);
+  const trainNames = Object.keys(trainSpeeds).sort();
   if (trainNames.length === 0) {
-    console.warn("No valid train speed data to render");
+    ctx.innerHTML = "<p style='text-align: center; color: #999;'>Không có dữ liệu</p>";
     return;
   }
+
   const avgSpeeds = trainNames.map(name => (trainSpeeds[name] / trainCounts[name]).toFixed(2));
   const validAvgSpeeds = avgSpeeds.filter(v => !isNaN(parseFloat(v)));
-  const globalAvgSpeed = (validAvgSpeeds.length > 0 ? (validAvgSpeeds.reduce((sum, val) => sum + parseFloat(val), 0) / validAvgSpeeds.length) : 0).toFixed(2);
+  const globalAvgSpeed = validAvgSpeeds.length > 0 
+    ? (validAvgSpeeds.reduce((sum, val) => sum + parseFloat(val), 0) / validAvgSpeeds.length).toFixed(2)
+    : 0;
 
-  const ctx = document.getElementById('avgSpeedChart').getContext('2d');
-  STATE.chartInstances.avgSpeed = new Chart(ctx, {
+  STATE.chartInstances.mainAnalysis = new Chart(ctx, {
     type: 'bar',
     data: {
       labels: trainNames,
       datasets: [
         {
-          label: 'Tốc Độ Trung Bình (km/h)',
+          label: '📍 Tốc Độ TB (km/h)',
           data: avgSpeeds,
           backgroundColor: trainNames.map(name => hashColor(name)),
-          barThickness: 20
+          borderColor: trainNames.map(name => hashColorDark(name)),
+          borderWidth: 2,
+          borderRadius: 5,
+          barThickness: 30
         },
         {
-          label: 'Tốc độ TB tất cả tàu',
+          label: '➖ TB Toàn Bộ',
           type: 'line',
           data: Array(avgSpeeds.length).fill(globalAvgSpeed),
-          borderColor: 'red',
-          borderWidth: 2,
+          borderColor: '#ff6b6b',
+          borderWidth: 3,
           fill: false,
-          pointRadius: 0
+          pointRadius: 0,
+          tension: 0.4,
+          borderDash: [5, 5]
         }
       ]
     },
-    options: { responsive: true, scales: { y: { beginAtZero: true } } }
-  });
-}
-
-function renderTripCountChart() {
-  const trainCounts = {};
-  STATE.originalData.forEach(item => {
-    const train = item["Tên Tàu"];
-    if (train) {
-      trainCounts[train] = (trainCounts[train] || 0) + 1;
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: { display: true, position: 'top' },
+        tooltip: {
+          backgroundColor: 'rgba(0,0,0,0.8)',
+          padding: 12,
+          titleFont: { size: 13 },
+          bodyFont: { size: 12 },
+          borderColor: 'rgba(255,255,255,0.2)',
+          borderWidth: 1
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { font: { size: 11 } },
+          grid: { color: 'rgba(0,0,0,0.05)' }
+        },
+        x: { ticks: { font: { size: 11 } } }
+      }
     }
   });
+}
 
-  if (Object.keys(trainCounts).length === 0) {
-    console.warn("No valid train count data to render");
+function renderTripCountChartNew(ctx, data) {
+  const trainCounts = {};
+  data.forEach(item => {
+    const train = item["Tên Tàu"];
+    if (train) trainCounts[train] = (trainCounts[train] || 0) + 1;
+  });
+
+  const trainNames = Object.keys(trainCounts).sort();
+  if (trainNames.length === 0) {
+    ctx.innerHTML = "<p style='text-align: center; color: #999;'>Không có dữ liệu</p>";
     return;
   }
-  const tripCounts = Object.values(trainCounts);
+
+  const tripCounts = trainNames.map(name => trainCounts[name]);
   const globalTripAvg = (tripCounts.reduce((a, b) => a + b, 0) / tripCounts.length).toFixed(2);
 
-  const ctx = document.getElementById('tripCountChart').getContext('2d');
-  STATE.chartInstances.tripCount = new Chart(ctx, {
+  STATE.chartInstances.mainAnalysis = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: Object.keys(trainCounts),
+      labels: trainNames,
       datasets: [
         {
-          label: 'Số Chuyến',
-          data: Object.values(trainCounts),
-          backgroundColor: Object.keys(trainCounts).map(name => hashColor(name)),
-          barThickness: 20
+          label: '🚂 Số Chuyến',
+          data: tripCounts,
+          backgroundColor: trainNames.map(name => hashColor(name)),
+          borderColor: trainNames.map(name => hashColorDark(name)),
+          borderWidth: 2,
+          borderRadius: 5,
+          barThickness: 30
         },
         {
-          label: 'Số chuyến TB tất cả tàu',
+          label: '➖ TB Toàn Bộ',
           type: 'line',
-          data: Array(Object.keys(trainCounts).length).fill(globalTripAvg),
-          borderColor: 'red',
-          borderWidth: 2,
+          data: Array(trainNames.length).fill(globalTripAvg),
+          borderColor: '#ff6b6b',
+          borderWidth: 3,
           fill: false,
-          pointRadius: 0
+          pointRadius: 0,
+          tension: 0.4,
+          borderDash: [5, 5]
         }
       ]
     },
-    options: { responsive: true, scales: { y: { beginAtZero: true } } }
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: { display: true, position: 'top' },
+        tooltip: {
+          backgroundColor: 'rgba(0,0,0,0.8)',
+          padding: 12,
+          titleFont: { size: 13 },
+          bodyFont: { size: 12 },
+          borderColor: 'rgba(255,255,255,0.2)',
+          borderWidth: 1
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { font: { size: 11 } },
+          grid: { color: 'rgba(0,0,0,0.05)' }
+        },
+        x: { ticks: { font: { size: 11 } } }
+      }
+    }
   });
 }
 
-function renderSpeedPerDayChart() {
+function renderSpeedPerDayChartNew(ctx, data) {
   const trainDateSpeedMap = {};
-  STATE.originalData.forEach(item => {
+  data.forEach(item => {
     const train = item["Tên Tàu"];
     try {
       const dateValue = item["Ngày Đến"];
-      if (!dateValue) return;  // Skip if no date
+      if (!dateValue) return;
       const dateObj = new Date(dateValue);
-      if (isNaN(dateObj.getTime())) return;  // Skip if invalid date
+      if (isNaN(dateObj.getTime())) return;
       const date = dateObj.toISOString().split("T")[0];
       const speed = Number(item["Vận Tốc"]);
-      if (isNaN(speed)) return;  // Skip if invalid speed
+      if (isNaN(speed)) return;
       const key = `${train}_${date}`;
       if (!trainDateSpeedMap[key]) trainDateSpeedMap[key] = { sum: 0, count: 0 };
       trainDateSpeedMap[key].sum += speed;
@@ -1040,6 +1189,11 @@ function renderSpeedPerDayChart() {
 
   const allDates = [...new Set(Object.values(trainDateGroups).flatMap(Object.keys))].sort();
 
+  if (allDates.length === 0) {
+    ctx.innerHTML = "<p style='text-align: center; color: #999;'>Không có dữ liệu</p>";
+    return;
+  }
+
   const datasets = Object.keys(trainDateGroups).map(train => {
     if (!STATE.trainColorMap[train]) STATE.trainColorMap[train] = hashColor(train);
     return {
@@ -1047,7 +1201,12 @@ function renderSpeedPerDayChart() {
       data: allDates.map(date => trainDateGroups[train][date] || null),
       fill: false,
       borderColor: STATE.trainColorMap[train],
-      tension: 0.1
+      backgroundColor: STATE.trainColorMap[train] + '20',
+      tension: 0.4,
+      pointRadius: 4,
+      pointBackgroundColor: STATE.trainColorMap[train],
+      pointBorderColor: 'white',
+      pointBorderWidth: 2
     };
   });
 
@@ -1062,20 +1221,191 @@ function renderSpeedPerDayChart() {
   });
 
   datasets.push({
-    label: 'Tốc độ TB tất cả tàu mỗi ngày',
+    label: '➖ TB Toàn Bộ Mỗi Ngày',
     data: Array(allDates.length).fill((totalSum / totalCount).toFixed(2)),
-    borderColor: 'red',
-    borderWidth: 2,
+    borderColor: '#ff6b6b',
+    borderWidth: 3,
     fill: false,
     pointRadius: 0,
+    tension: 0.4,
     borderDash: [5, 5]
   });
 
-  const ctx = document.getElementById('speedPerDayChart').getContext('2d');
-  STATE.chartInstances.speedPerDay = new Chart(ctx, {
+  STATE.chartInstances.mainAnalysis = new Chart(ctx, {
     type: 'line',
     data: { labels: allDates, datasets },
-    options: { responsive: true, scales: { y: { beginAtZero: true } } }
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: { display: true, position: 'top' },
+        tooltip: {
+          backgroundColor: 'rgba(0,0,0,0.8)',
+          padding: 12,
+          titleFont: { size: 13 },
+          bodyFont: { size: 12 },
+          borderColor: 'rgba(255,255,255,0.2)',
+          borderWidth: 1
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { font: { size: 11 } },
+          grid: { color: 'rgba(0,0,0,0.05)' }
+        },
+        x: { ticks: { font: { size: 11 } } }
+      }
+    }
+  });
+}
+
+function renderSpeedComparisonChart(ctx, data) {
+  const stationSpeeds = {};
+  const stationCounts = {};
+
+  data.forEach(item => {
+    const station = item["Trạm"];
+    const speed = Number(item["Vận Tốc"]);
+    if (!isNaN(speed) && isFinite(speed)) {
+      stationSpeeds[station] = (stationSpeeds[station] || 0) + speed;
+      stationCounts[station] = (stationCounts[station] || 0) + 1;
+    }
+  });
+
+  const stationNames = Object.keys(stationSpeeds).sort();
+  if (stationNames.length === 0) {
+    ctx.innerHTML = "<p style='text-align: center; color: #999;'>Không có dữ liệu</p>";
+    return;
+  }
+
+  const avgSpeeds = stationNames.map(name => (stationSpeeds[name] / stationCounts[name]).toFixed(2));
+
+  STATE.chartInstances.mainAnalysis = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: stationNames,
+      datasets: [
+        {
+          label: '📍 Tốc Độ TB Theo Trạm (km/h)',
+          data: avgSpeeds,
+          backgroundColor: stationNames.map(name => hashColor(name)),
+          borderColor: stationNames.map(name => hashColorDark(name)),
+          borderWidth: 2,
+          borderRadius: 5,
+          barThickness: 30
+        }
+      ]
+    },
+    options: {
+      indexAxis: avgSpeeds.length > 8 ? 'y' : 'x',
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: { display: true, position: 'top' },
+        tooltip: {
+          backgroundColor: 'rgba(0,0,0,0.8)',
+          padding: 12,
+          titleFont: { size: 13 },
+          bodyFont: { size: 12 }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { font: { size: 11 } },
+          grid: { color: 'rgba(0,0,0,0.05)' }
+        },
+        x: { ticks: { font: { size: 11 } } }
+      }
+    }
+  });
+}
+
+function renderStationCharts() {
+  const container = document.getElementById("stationChartsContainer");
+  container.innerHTML = "";
+
+  const stationSet = new Set();
+  STATE.originalData.forEach(item => {
+    if (item["Trạm"]) stationSet.add(item["Trạm"]);
+  });
+
+  const stations = [...stationSet].sort();
+
+  stations.forEach(station => {
+    const stationData = STATE.originalData.filter(item => item["Trạm"] === station);
+    if (stationData.length === 0) return;
+
+    const card = document.createElement("div");
+    card.className = "station-chart-card";
+    card.innerHTML = `
+      <h3>🏢 ${station}</h3>
+      <canvas id="stationChart_${station.replace(/\s+/g, '_')}" height="80"></canvas>
+    `;
+    container.appendChild(card);
+
+    // Render station chart
+    setTimeout(() => {
+      const canvasId = `stationChart_${station.replace(/\s+/g, '_')}`;
+      const ctx = document.getElementById(canvasId);
+      if (ctx) {
+        renderStationDetailChart(ctx, station, stationData);
+      }
+    }, 0);
+  });
+}
+
+function renderStationDetailChart(ctx, stationName, stationData) {
+  const trainSpeeds = {};
+  const trainCounts = {};
+
+  stationData.forEach(item => {
+    const train = item["Tên Tàu"];
+    const speed = Number(item["Vận Tốc"]);
+    if (!isNaN(speed) && isFinite(speed)) {
+      trainSpeeds[train] = (trainSpeeds[train] || 0) + speed;
+      trainCounts[train] = (trainCounts[train] || 0) + 1;
+    }
+  });
+
+  const trainNames = Object.keys(trainSpeeds).sort();
+  const avgSpeeds = trainNames.map(name => (trainSpeeds[name] / trainCounts[name]).toFixed(2));
+
+  const chartId = `stationChart_${stationName.replace(/\s+/g, '_')}`;
+  if (STATE.chartInstances.stationCharts[chartId]) {
+    STATE.chartInstances.stationCharts[chartId].destroy();
+  }
+
+  STATE.chartInstances.stationCharts[chartId] = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: trainNames,
+      datasets: [
+        {
+          data: trainNames.map((_, i) => stationData.filter(d => d["Tên Tàu"] === trainNames[i]).length),
+          backgroundColor: trainNames.map(name => hashColor(name)),
+          borderColor: 'white',
+          borderWidth: 2
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { padding: 10, font: { size: 11 } }
+        },
+        tooltip: {
+          backgroundColor: 'rgba(0,0,0,0.8)',
+          padding: 10,
+          titleFont: { size: 12 },
+          bodyFont: { size: 11 }
+        }
+      }
+    }
   });
 }
 
@@ -1086,6 +1416,15 @@ function hashColor(str) {
   }
   const hue = Math.abs(hash) % 360;
   return `hsl(${hue}, 70%, 50%)`;
+}
+
+function hashColorDark(str) {
+  let hash = 5381;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash * 33) ^ str.charCodeAt(i);
+  }
+  const hue = Math.abs(hash) % 360;
+  return `hsl(${hue}, 70%, 35%)`;
 }
 
 // ==================== INITIALIZATION ====================
