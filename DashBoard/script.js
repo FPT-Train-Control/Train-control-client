@@ -161,8 +161,14 @@ async function initAfterLogin() {
   STATE.displayedRowCount = 0;
   STATE.hasMoreData = true;
   
-  // Extract allowed stations from login response
-  STATE.allowedStations = [STATE.station]; // At minimum, the user's own station
+  // Parse comma-separated stations from login response
+  // Format: "Station_A, Station_B, Station_C"
+  STATE.allowedStations = STATE.station
+    .split(',')
+    .map(station => station.trim())
+    .filter(station => station.length > 0);
+  
+  console.log("🏢 Allowed stations:", STATE.allowedStations);
   
   console.log("📡 Calling fetchDataAndRender");
   await fetchDataAndRender();
