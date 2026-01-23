@@ -29,9 +29,14 @@ function getUserSheet() {
   
   if (!userSheet) {
     userSheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet("Users");
-    userSheet.appendRow(["Username", "Password", "Station", "Active"]);
-    // Example user: admin/admin123 with access to all stations (use "All")
-    userSheet.appendRow(["admin", "admin123", "All", "true"]);
+    userSheet.appendRow(["Username", "Password", "Stations", "Active"]);
+    // Example users with comma-separated station lists
+    // User with single station
+    userSheet.appendRow(["admin", "admin123", "Khu Cong Nghe Cao, Khu Cong Nghe Thap, Khu Cong Nghe vua", "true"]);
+    // User with multiple stations
+    userSheet.appendRow(["tech", "tech123", "Khu Cong Nghe Cao, Khu Cong Nghe Thap", "true"]);
+    // User with access to all stations
+    userSheet.appendRow(["supervisor", "super123", "All", "true"]);
   }
 
   return userSheet;
@@ -42,12 +47,12 @@ function authenticateUser(username, password) {
   const data = userSheet.getDataRange().getValues();
 
   for (let i = 1; i < data.length; i++) {
-    const [user, pass, station, active] = data[i];
+    const [user, pass, stations, active] = data[i];
     if (user === username && pass === password && (active === "true" || active === true)) {
       return {
         authenticated: true,
         username: user,
-        station: station
+        station: stations  // Return the comma-separated stations string
       };
     }
   }
@@ -60,6 +65,14 @@ function authenticateUser(username, password) {
 }
 
 // ==================== DATA RETRIEVAL ====================
+function parseStationString(stationString) {
+  // Parse comma-separated stations: "Station_A, Station_B, Station_C"
+  if (stationString === "All") {
+    return ["All"];
+  }
+  return stationString.split(',').map(s => s.trim()).filter(s => s.length > 0);
+}
+
 function getFilteredTrainData(station, dateFilter = null, chunk = 0, chunkSize = 50) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Train Log");
   
@@ -77,6 +90,9 @@ function getFilteredTrainData(station, dateFilter = null, chunk = 0, chunkSize =
   const stationColumnIndex = headers.indexOf("Trạm");
   const arrivalDateColumnIndex = headers.indexOf("Ngày Đến");
   
+  // Parse station string to get array of allowed stations
+  const allowedStations = parseStationString(station);
+  
   const filteredData = [];
 
   // Iterate from newest (end) to oldest (beginning)
@@ -85,8 +101,8 @@ function getFilteredTrainData(station, dateFilter = null, chunk = 0, chunkSize =
     const rowStation = row[stationColumnIndex];
     const rowDate = row[arrivalDateColumnIndex];
 
-    // Filter by station (unless station is "All")
-    if (station !== "All" && rowStation !== station) {
+    // Filter by station (unless "All" is in allowed stations)
+    if (!allowedStations.includes("All") && !allowedStations.includes(rowStation)) {
       continue;
     }
 

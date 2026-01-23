@@ -635,7 +635,8 @@ function renderStationControls() {
     
     const card = document.createElement("div");
     card.className = "station-control-card";
-    card.id = `stationCard_${station.replace(/\s+/g, '_')}`;
+    const safeName = station.replace(/\s+/g, '_');
+    card.id = `stationCard_${safeName}`;
     
     card.innerHTML = `
       <h3>🏢 Trạm ${station}</h3>
@@ -644,18 +645,40 @@ function renderStationControls() {
         <h4>🚧 Điều Khiển Barrier</h4>
         <div class="control-status">
           <span class="control-status-label">Trạng Thái:</span>
-          <span class="status-badge" id="barrierStatus_${station.replace(/\s+/g, '_')}">Chưa Biết</span>
+          <span class="status-badge" id="barrierStatus_${safeName}">Chưa Biết</span>
         </div>
-        <button class="control-button" id="barrierControl_${station.replace(/\s+/g, '_')}">Chuyển Đổi Barrier</button>
+        <button class="control-button" id="barrierControl_${safeName}">Chuyển Đổi Barrier</button>
       </div>
       
       <div class="control-section">
         <h4>⚙️ Chế Độ Tự Động</h4>
         <div class="control-status">
           <span class="control-status-label">Trạng Thái:</span>
-          <span class="status-badge" id="autoStatus_${station.replace(/\s+/g, '_')}">Chế Độ Thủ Công</span>
+          <span class="status-badge" id="autoStatus_${safeName}">Chế Độ Thủ Công</span>
         </div>
-        <button class="control-button" id="autoControl_${station.replace(/\s+/g, '_')}">Bật Chế Độ Tự Động</button>
+        <button class="control-button" id="autoControl_${safeName}">Bật Chế Độ Tự Động</button>
+      </div>
+      
+      <!-- Per-Station Settings -->
+      <div class="collapsible-container">
+        <button class="toggle-form-btn" type="button">⚙️ Cài Đặt Trạm</button>
+        <form class="station-settings-form hidden" data-station="${station}">
+          <div class="settings-group">
+            <div class="form-group">
+              <label>📏 Khoảng cách K1 → K2 (m)</label>
+              <input type="number" class="distance-input" placeholder="30" required>
+            </div>
+            <div class="form-group">
+              <label>🔔 Cảnh báo sớm (s)</label>
+              <input type="number" class="delay1-input" placeholder="20" required>
+            </div>
+            <div class="form-group">
+              <label>⏱️ Đóng barrier trước (s)</label>
+              <input type="number" class="delay2-input" placeholder="10" required>
+            </div>
+          </div>
+          <button type="submit">💾 Lưu Cài Đặt</button>
+        </form>
       </div>
     `;
     
@@ -889,18 +912,28 @@ function updateautoUI() {
 
 // ==================== CONTROLS ====================
 function setupControls() {
-  // Settings form for MQTT commands
-  const toggleBtn = document.querySelector('.toggle-form-btn');
-  const form = document.getElementById('settingsForm');
-  
-  if (toggleBtn && form) {
-    toggleBtn.addEventListener('click', () => form.classList.toggle('hidden'));
+  // Per-station settings forms
+  document.addEventListener('click', (e) => {
+    // Handle per-station settings toggle buttons
+    if (e.target.classList.contains('toggle-form-btn')) {
+      const form = e.target.nextElementSibling;
+      if (form && form.classList.contains('station-settings-form')) {
+        form.classList.toggle('hidden');
+        e.target.classList.toggle('expanded');
+      }
+    }
+  });
 
-    form.addEventListener('submit', (e) => {
+  // Per-station settings form submission
+  document.addEventListener('submit', (e) => {
+    if (e.target.classList.contains('station-settings-form')) {
       e.preventDefault();
-      const distance = Number(document.getElementById('distance').value || "NaN");
-      const warning1 = Number(document.getElementById('delay1').value || "NaN");
-      const warning2 = Number(document.getElementById('delay2').value || "NaN");
+      
+      const form = e.target;
+      const station = form.getAttribute('data-station');
+      const distance = Number(form.querySelector('.distance-input').value || "NaN");
+      const warning1 = Number(form.querySelector('.delay1-input').value || "NaN");
+      const warning2 = Number(form.querySelector('.delay2-input').value || "NaN");
 
       const payload = {
         distance: !isNaN(distance) ? distance : undefined,
@@ -908,22 +941,22 @@ function setupControls() {
         warning2: !isNaN(warning2) ? warning2 : undefined
       };
 
-      // Send settings via MQTT to all allowed stations
-      STATE.allowedStations.forEach(station => {
-        const topic = `train/station/${station}/settings`;
-        const message = JSON.stringify({
-          ...payload,
-          timestamp: new Date().toISOString()
-        });
-        
-        if (STATE.mqtt && STATE.mqttConnected) {
-          STATE.mqtt.publish(topic, message, { qos: 1 });
-        }
+      // Send settings via MQTT for this specific station
+      const topic = `train/station/${station}/settings`;
+      const message = JSON.stringify({
+        ...payload,
+        timestamp: new Date().toISOString()
       });
       
-      alert("Cài đặt đã được lưu!");
-    });
-  }
+      if (STATE.mqtt && STATE.mqttConnected) {
+        STATE.mqtt.publish(topic, message, { qos: 1 });
+        console.log(`📤 Settings sent to ${station}:`, message);
+        alert(`Cài đặt cho trạm ${station} đã được lưu!`);
+      } else {
+        alert(`Lỗi: Không kết nối được đến MQTT cho trạm ${station}`);
+      }
+    }
+  });
 
   // Search and filter controls
   document.getElementById("searchInput").addEventListener("input", filterAndSearch);
