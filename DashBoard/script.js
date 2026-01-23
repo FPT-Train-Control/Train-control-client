@@ -515,8 +515,8 @@ function setupMQTT() {
   const MQTT_URL = `wss://${MQTT_BROKER}:${MQTT_PORT}/mqtt`;
   
   // Using example credentials (you should replace with actual ones)
-  const MQTT_USERNAME = "train_system";
-  const MQTT_PASSWORD = "Train@123";
+  const MQTT_USERNAME = "WebApp";
+  const MQTT_PASSWORD = "WebApp_1";
   
   const options = {
     protocol: 'wss',
