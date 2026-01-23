@@ -678,21 +678,21 @@ function renderStationControls() {
       </div>
       
       <!-- Per-Station Settings -->
-      <div class="collapsible-container">
-        <button class="toggle-form-btn" type="button">⚙️ Cài Đặt Trạm</button>
+      <div class="collapsible-container" style="margin-top: 20px;">
+        <button type="button" class="toggle-form-btn">⚙️ Cài Đặt Trạm</button>
         <form class="station-settings-form hidden" data-station="${station}">
           <div class="settings-group">
             <div class="form-group">
               <label>📏 Khoảng cách K1 → K2 (m)</label>
-              <input type="number" class="distance-input" placeholder="30" required>
+              <input type="number" class="distance-input" placeholder="30">
             </div>
             <div class="form-group">
               <label>🔔 Cảnh báo sớm (s)</label>
-              <input type="number" class="delay1-input" placeholder="20" required>
+              <input type="number" class="delay1-input" placeholder="20">
             </div>
             <div class="form-group">
               <label>⏱️ Đóng barrier trước (s)</label>
-              <input type="number" class="delay2-input" placeholder="10" required>
+              <input type="number" class="delay2-input" placeholder="10">
             </div>
           </div>
           <button type="submit">💾 Lưu Cài Đặt</button>
@@ -933,12 +933,13 @@ function setupControls() {
   // Per-station settings forms
   document.addEventListener('click', (e) => {
     // Handle per-station settings toggle buttons
-    if (e.target.classList.contains('toggle-form-btn') && e.target.type !== 'submit') {
+    if (e.target.classList.contains('toggle-form-btn')) {
       const collapsibleContainer = e.target.closest('.collapsible-container');
       if (collapsibleContainer) {
         const form = collapsibleContainer.querySelector('.station-settings-form');
         if (form) {
           e.preventDefault();
+          e.stopPropagation();
           form.classList.toggle('hidden');
           e.target.classList.toggle('expanded');
           console.log('⚙️ Settings form toggled');
