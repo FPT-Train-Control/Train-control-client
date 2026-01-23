@@ -152,7 +152,11 @@ async function initAfterLogin() {
   document.body.classList.add("sidebar-active");
   document.getElementById("sidebar").classList.add("active");
   document.getElementById("sidebarUsername").textContent = STATE.username;
-  document.getElementById("sidebarStation").textContent = `Trạm: ${STATE.station}`;
+  
+  // Display multiple stations on separate lines in sidebar
+  const sidebarStationEl = document.getElementById("sidebarStation");
+  const stations = STATE.station.split(',').map(s => s.trim());
+  sidebarStationEl.innerHTML = stations.map(s => `<div class="station-line">🏢 ${s}</div>`).join('');
   
   setupSidebarMenu();
   setupLogout();
@@ -542,7 +546,7 @@ function setupMQTT() {
       STATE.mqttConnected = true;
       updateMQTTStatus(true);
       
-      // Subscribe to allowed station topics
+      // Subscribe to allowed station topics and request initial status
       STATE.allowedStations.forEach(station => {
         const topic = `train/station/${station}/state`;
         STATE.mqtt.subscribe(topic, (err) => {
@@ -550,6 +554,20 @@ function setupMQTT() {
             console.error(`Failed to subscribe to ${topic}:`, err);
           } else {
             console.log(`✓ Subscribed to ${topic}`);
+          }
+        });
+        
+        // Request initial status for this station
+        const requestTopic = `train/station/${station}/status/request`;
+        const requestPayload = JSON.stringify({
+          request: "status",
+          timestamp: new Date().toISOString()
+        });
+        STATE.mqtt.publish(requestTopic, requestPayload, { qos: 1 }, (err) => {
+          if (err) {
+            console.warn(`Could not request status for ${station}:`, err);
+          } else {
+            console.log(`📤 Status request sent to ${station}`);
           }
         });
       });
@@ -915,11 +933,16 @@ function setupControls() {
   // Per-station settings forms
   document.addEventListener('click', (e) => {
     // Handle per-station settings toggle buttons
-    if (e.target.classList.contains('toggle-form-btn')) {
-      const form = e.target.nextElementSibling;
-      if (form && form.classList.contains('station-settings-form')) {
-        form.classList.toggle('hidden');
-        e.target.classList.toggle('expanded');
+    if (e.target.classList.contains('toggle-form-btn') && e.target.type !== 'submit') {
+      const collapsibleContainer = e.target.closest('.collapsible-container');
+      if (collapsibleContainer) {
+        const form = collapsibleContainer.querySelector('.station-settings-form');
+        if (form) {
+          e.preventDefault();
+          form.classList.toggle('hidden');
+          e.target.classList.toggle('expanded');
+          console.log('⚙️ Settings form toggled');
+        }
       }
     }
   });
@@ -1671,11 +1694,15 @@ function renderStationCharts() {
       <div class="station-chart-subgrid">
         <div class="station-chart-item">
           <h4>🚂 Phân Bố Tàu</h4>
-          <canvas id="${stationChartId}" height="60"></canvas>
+          <div class="chart-wrapper" style="position: relative; height: 250px; width: 100%;">
+            <canvas id="${stationChartId}"></canvas>
+          </div>
         </div>
         <div class="station-chart-item">
           <h4>⚡ Tốc Độ Tàu Mới Nhất</h4>
-          <canvas id="${speedLineChartId}" height="60"></canvas>
+          <div class="chart-wrapper" style="position: relative; height: 250px; width: 100%;">
+            <canvas id="${speedLineChartId}"></canvas>
+          </div>
         </div>
       </div>
     `;
@@ -1788,17 +1815,17 @@ function renderStationLatestSpeedChart(ctx, stationName, stationData) {
           backgroundColor: trainNames.map(name => hashColor(name) + '20'),
           fill: true,
           tension: 0.4,
-          pointRadius: 5,
+          pointRadius: 6,
           pointBackgroundColor: trainNames.map(name => hashColor(name)),
           pointBorderColor: 'white',
           pointBorderWidth: 2,
-          pointHoverRadius: 7
+          pointHoverRadius: 8
         }
       ]
     },
     options: {
       responsive: true,
-      maintainAspectRatio: true,
+      maintainAspectRatio: false,
       plugins: {
         legend: {
           display: false
