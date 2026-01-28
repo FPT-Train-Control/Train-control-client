@@ -1880,23 +1880,24 @@ const AI_AGENT = {
   engine: null,
   model: "Llama-3.2-3B-Instruct-q4f16_1-MLC",
   isReady: false,
+  isFallbackMode: false,
   conversationHistory: [],
-  systemPrompt: `You are an intelligent Data Analyst Assistant for a Vietnamese Railway Train Control System.
-Your role is to help users understand and analyze train data, including:
-- Train speeds and performance metrics
-- Station operations and schedules  
-- Data trends and patterns
-- Anomalies detection
-- Report generation recommendations
+  systemPrompt: `Bạn là một Trợ Lý Phân Tích Dữ Liệu thông minh cho Hệ Thống Giám Sát và Điều Khiển Giao Cắt Đường Sắt Việt Nam.
+Nhiệm vụ của bạn là giúp người dùng hiểu và phân tích dữ liệu tàu, bao gồm:
+- Tốc độ tàu và các chỉ số hiệu suất
+- Hoạt động trạm và lịch biểu
+- Xu hướng và mô hình dữ liệu
+- Phát hiện bất thường
+- Khuyến nghị tạo báo cáo
 
-When analyzing data:
-1. Be specific with numbers and percentages
-2. Suggest actionable insights
-3. Highlight any concerning trends
-4. Provide recommendations based on data
+Khi phân tích dữ liệu:
+1. Cụ thể với số lượng và tỷ lệ phần trăm
+2. Đề xuất những hiểu biết có thể hành động
+3. Nêu bật những xu hướng đáng lo ngại
+4. Đưa ra khuyến nghị dựa trên dữ liệu
 
-Always respond in a professional but friendly tone. Keep responses concise (2-3 sentences max) unless asked for details.
-If you don't have specific data context, ask the user to clarify what aspect they'd like to analyze.`
+Luôn phản hồi bằng giọng chuyên nghiệp nhưng thân thiện. Giữ các phản hồi ngắn gọn (tối đa 2-3 câu) trừ khi được yêu cầu chi tiết.
+Nếu bạn không có bối cảnh dữ liệu cụ thể, hãy yêu cầu người dùng làm rõ khía cạnh nào họ muốn phân tích.`
 };
 
 async function initializeAIAgent() {
@@ -1905,7 +1906,7 @@ async function initializeAIAgent() {
   const sendBtn = document.getElementById("aiSendBtn");
   
   try {
-    statusEl.textContent = "Loading AI model...";
+    statusEl.textContent = "Đang tải mô hình AI...";
     statusEl.className = "ai-status loading";
     
     // Check if WebLLM is available
@@ -1920,7 +1921,7 @@ async function initializeAIAgent() {
     AI_AGENT.engine = new window.MLCEngine({
       initProgressCallback: (info) => {
         const percent = Math.floor(info.progress * 100);
-        statusEl.textContent = `Loading: ${percent}%`;
+        statusEl.textContent = `Đang tải: ${percent}%`;
         console.log(`📥 Loading progress: ${percent}%`);
       }
     });
@@ -1930,14 +1931,14 @@ async function initializeAIAgent() {
     await AI_AGENT.engine.reload(selectedModel);
     
     AI_AGENT.isReady = true;
-    statusEl.textContent = "✓ AI Ready";
+    statusEl.textContent = "✓ Trợ Lý sẵn sàng";
     statusEl.className = "ai-status ready";
     
     inputEl.disabled = false;
     sendBtn.disabled = false;
     
     // Add welcome message
-    addAIMessage("👋 Hello! I'm your Data Analyst. Ask me about train speeds, station data, or trends in your data!");
+    addAIMessage("👋 Xin chào! Tôi là Trợ Lý Phân Tích Dữ Liệu của bạn. Hỏi tôi về tốc độ tàu, dữ liệu trạm, hoặc các xu hướng trong dữ liệu của bạn!");
     
     console.log("✅ AI Agent ready (WebLLM mode)");
   } catch (error) {
@@ -1955,13 +1956,13 @@ function initializeAIFallbackMode() {
   AI_AGENT.isFallbackMode = true;
   AI_AGENT.isReady = true;
   
-  statusEl.textContent = "✓ AI Ready (Lite Mode)";
+  statusEl.textContent = "✓ Trợ Lý sẵn sàng (Chế độ Lite)";
   statusEl.className = "ai-status ready";
   
   inputEl.disabled = false;
   sendBtn.disabled = false;
   
-  addAIMessage("👋 Hello! I'm in Lite Mode - I can help analyze your train data with basic insights. Ask me about speeds, stations, or trends!");
+  addAIMessage("👋 Xin chào! Tôi ở Chế độ Lite - Tôi có thể giúp bạn phân tích dữ liệu tàu với những thông tin chi tiết cơ bản. Hỏi tôi về tốc độ, trạm, hoặc xu hướng!");
   console.log("✅ AI Agent ready (Fallback/Lite mode)");
 }
 
@@ -2079,7 +2080,7 @@ async function sendAIMessage() {
     console.log("📥 AI Response:", aiResponse);
   } catch (error) {
     console.error("❌ AI error:", error);
-    addAIMessage("Sorry, I encountered an error processing your request. Please try again.", false);
+    addAIMessage("Xin lỗi, tôi gặp lỗi khi xử lý yêu cầu của bạn. Vui lòng thử lại.", false);
   } finally {
     loadingEl.style.display = "none";
     inputEl.disabled = false;
@@ -2114,31 +2115,31 @@ function generateAIFallbackResponse(userMessage) {
   
   // Generate response based on keywords
   if (msg.includes("speed") || msg.includes("tốc")) {
-    return `Current speed statistics: Average ${avgSpeed} km/h, Max ${maxSpeed} km/h, Min ${minSpeed} km/h. ${STATE.originalData.length} records analyzed.`;
+    return `Thống kê tốc độ hiện tại: Trung bình ${avgSpeed} km/h, Tối đa ${maxSpeed} km/h, Tối thiểu ${minSpeed} km/h. Đã phân tích ${STATE.originalData.length} bản ghi.`;
   }
   
   if (msg.includes("train") || msg.includes("tàu")) {
-    return `I found ${trains.size} unique trains in your data: ${Array.from(trains).slice(0, 5).join(", ")}${trains.size > 5 ? ", and more..." : ""}`;
+    return `Tôi tìm thấy ${trains.size} tàu duy nhất trong dữ liệu của bạn: ${Array.from(trains).slice(0, 5).join(", ")}${trains.size > 5 ? ", và nhiều hơn nữa..." : ""}`;
   }
   
   if (msg.includes("station") || msg.includes("trạm")) {
-    return `I found ${stations.size} stations: ${Array.from(stations).slice(0, 5).join(", ")}${stations.size > 5 ? ", and more..." : ""}`;
+    return `Tôi tìm thấy ${stations.size} trạm: ${Array.from(stations).slice(0, 5).join(", ")}${stations.size > 5 ? ", và nhiều hơn nữa..." : ""}`;
   }
   
   if (msg.includes("summary") || msg.includes("overview") || msg.includes("tổng")) {
-    return `Data Summary: ${STATE.originalData.length} records, ${trains.size} trains, ${stations.size} stations. Average speed: ${avgSpeed} km/h. Ready to answer specific questions!`;
+    return `Tóm tắt Dữ liệu: ${STATE.originalData.length} bản ghi, ${trains.size} tàu, ${stations.size} trạm. Tốc độ trung bình: ${avgSpeed} km/h. Sẵn sàng trả lời các câu hỏi cụ thể!`;
   }
   
   if (msg.includes("analyze") || msg.includes("phân tích")) {
-    return `I can analyze your train data for speed trends, station efficiency, or anomalies. What specific aspect interests you?`;
+    return `Tôi có thể phân tích dữ liệu tàu của bạn về xu hướng tốc độ, hiệu quả trạm, hoặc bất thường. Khía cạnh nào quan tâm bạn?`;
   }
   
   if (msg.includes("trend") || msg.includes("pattern")) {
-    return `Based on ${STATE.originalData.length} records, the average train speed is ${avgSpeed} km/h. I recommend reviewing outliers above ${maxSpeed} km/h for safety considerations.`;
+    return `Dựa trên ${STATE.originalData.length} bản ghi, tốc độ tàu trung bình là ${avgSpeed} km/h. Tôi khuyến nghị xem xét các giá trị ngoài lệ trên ${maxSpeed} km/h để xem xét an toàn.`;
   }
   
   // Default response
-  return `I'm here to help analyze your train data. Ask me about speeds, trains, stations, trends, or data summaries. What would you like to know?`;
+  return `Tôi ở đây để giúp bạn phân tích dữ liệu tàu. Hỏi tôi về tốc độ, tàu, trạm, xu hướng, hoặc tóm tắt dữ liệu. Bạn muốn biết điều gì?`;
 }
 
 function setupAIAgent() {
@@ -2159,10 +2160,10 @@ function setupAIAgent() {
       retries++;
       if (typeof window.MLCEngine !== 'undefined') {
         clearInterval(checkInterval);
-        statusEl.textContent = "Loading model...";
+        statusEl.textContent = "Đang tải mô hình...";
       } else if (retries > 30) { // Give up after 15 seconds
         clearInterval(checkInterval);
-        statusEl.textContent = "❌ WebLLM failed to load";
+        statusEl.textContent = "❌ WebLLM không thể tải";
         statusEl.className = "ai-status error";
       }
     }, 500);
