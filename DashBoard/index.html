@@ -16,6 +16,8 @@
     <script src="https://unpkg.com/docx@7.1.0/build/index.js"></script>
     <!-- MQTT.js for HiveMQ WebSocket -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mqtt/5.3.0/mqtt.min.js"></script>
+    <!-- WebLLM for running LLM in browser -->
+    <script src="https://raw.githubusercontent.com/mlc-ai/web-llm/main/dist/web-llm.js"></script>
     <style>
       /* Login Modal */
       #loginModal {
@@ -400,6 +402,28 @@
       
       <!-- Station Controls Container -->
       <div id="stationControlsContainer"></div>
+    </div>
+
+    <!-- WebLLM Chat Panel -->
+    <button class="webllm-toggle" id="webllmToggle" title="Open AI Assistant">🤖</button>
+    <div class="webllm-panel hidden" id="webllmPanel">
+      <div class="webllm-header">
+        <h3>🤖 AI Trợ Lý</h3>
+        <button class="webllm-close" id="webllmClose">✕</button>
+      </div>
+      <div class="webllm-status" id="webllmStatus">
+        Đang khởi động mô hình...
+      </div>
+      <div class="webllm-messages" id="webllmMessages"></div>
+      <div class="webllm-input-area">
+        <textarea
+          class="webllm-input"
+          id="webllmInput"
+          placeholder="Hỏi về dữ liệu tàu..."
+          rows="2"
+        ></textarea>
+        <button class="webllm-send-btn" id="webllmSendBtn">Gửi</button>
+      </div>
     </div>
     <script defer src="./script.js"></script>
   </body>
