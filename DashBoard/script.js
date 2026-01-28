@@ -1878,7 +1878,7 @@ function hashColorDark(str) {
 // ==================== AI AGENT WITH WEBLLM ====================
 const AI_AGENT = {
   engine: null,
-  model: "Phi-3.5-mini-instruct-q4f16_1-MLC",
+  model: "Llama-3.2-3B-Instruct-q4f16_1-MLC",
   isReady: false,
   conversationHistory: [],
   systemPrompt: `You are an intelligent Data Analyst Assistant for a Vietnamese Railway Train Control System.
@@ -1908,16 +1908,22 @@ async function initializeAIAgent() {
     statusEl.textContent = "Loading AI model...";
     statusEl.className = "ai-status loading";
     
+    // Check if WebLLM is available
+    if (typeof window.MLCEngine === 'undefined') {
+      throw new Error("WebLLM library not loaded. Please check internet connection.");
+    }
+    
     // Initialize WebLLM
     const selectedModel = AI_AGENT.model;
-    AI_AGENT.engine = new MLCEngine();
+    AI_AGENT.engine = new window.MLCEngine({
+      initProgressCallback: (info) => {
+        const percent = Math.floor(info.progress * 100);
+        statusEl.textContent = `Loading: ${percent}%`;
+        console.log(`📥 Loading progress: ${percent}%`);
+      }
+    });
     
     console.log("🤖 Initializing WebLLM with model:", selectedModel);
-    
-    AI_AGENT.engine.setInitProgressCallback((info) => {
-      const percent = Math.floor(info.progress * 100);
-      statusEl.textContent = `Loading: ${percent}%`;
-    });
     
     await AI_AGENT.engine.reload(selectedModel);
     
@@ -1934,8 +1940,11 @@ async function initializeAIAgent() {
     console.log("✅ AI Agent ready");
   } catch (error) {
     console.error("❌ AI initialization error:", error);
-    statusEl.textContent = "❌ Failed to load model";
+    statusEl.textContent = `❌ ${error.message || 'Failed to load model'}`;
     statusEl.className = "ai-status error";
+    
+    // Show error in chat
+    addAIMessage(`I couldn't load properly: ${error.message}. The AI service may be unavailable. Please refresh the page.`, false);
   }
 }
 
@@ -2059,6 +2068,27 @@ function setupAIAgent() {
   const sendBtn = document.getElementById("aiSendBtn");
   const inputEl = document.getElementById("aiInput");
   const widget = document.getElementById("aiAgentWidget");
+  const statusEl = document.getElementById("aiStatus");
+  
+  // Check if WebLLM is available
+  if (typeof window.MLCEngine === 'undefined') {
+    statusEl.textContent = "⏳ Waiting for WebLLM...";
+    statusEl.className = "ai-status loading";
+    
+    // Retry checking every 500ms
+    let retries = 0;
+    const checkInterval = setInterval(() => {
+      retries++;
+      if (typeof window.MLCEngine !== 'undefined') {
+        clearInterval(checkInterval);
+        statusEl.textContent = "Loading model...";
+      } else if (retries > 30) { // Give up after 15 seconds
+        clearInterval(checkInterval);
+        statusEl.textContent = "❌ WebLLM failed to load";
+        statusEl.className = "ai-status error";
+      }
+    }, 500);
+  }
   
   // Toggle minimize
   toggleBtn.addEventListener("click", () => {
@@ -2083,7 +2113,7 @@ function setupAIAgent() {
   window.initAfterLogin = async function() {
     await originalInitAfterLogin.call(this);
     console.log("🤖 Starting AI Agent initialization...");
-    setTimeout(() => initializeAIAgent(), 1000); // Delay to allow page to fully load
+    setTimeout(() => initializeAIAgent(), 2000); // Increased delay to ensure WebLLM is loaded
   };
 }
 
