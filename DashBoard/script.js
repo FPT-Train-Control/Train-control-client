@@ -1910,7 +1910,9 @@ async function initializeAIAgent() {
     
     // Check if WebLLM is available
     if (typeof window.MLCEngine === 'undefined') {
-      throw new Error("WebLLM library not loaded. Please check internet connection.");
+      console.warn("⚠️ WebLLM not available, using fallback mode");
+      initializeAIFallbackMode();
+      return;
     }
     
     // Initialize WebLLM
@@ -1937,15 +1939,30 @@ async function initializeAIAgent() {
     // Add welcome message
     addAIMessage("👋 Hello! I'm your Data Analyst. Ask me about train speeds, station data, or trends in your data!");
     
-    console.log("✅ AI Agent ready");
+    console.log("✅ AI Agent ready (WebLLM mode)");
   } catch (error) {
     console.error("❌ AI initialization error:", error);
-    statusEl.textContent = `❌ ${error.message || 'Failed to load model'}`;
-    statusEl.className = "ai-status error";
-    
-    // Show error in chat
-    addAIMessage(`I couldn't load properly: ${error.message}. The AI service may be unavailable. Please refresh the page.`, false);
+    console.warn("⚠️ Switching to fallback mode...");
+    initializeAIFallbackMode();
   }
+}
+
+function initializeAIFallbackMode() {
+  const statusEl = document.getElementById("aiStatus");
+  const inputEl = document.getElementById("aiInput");
+  const sendBtn = document.getElementById("aiSendBtn");
+  
+  AI_AGENT.isFallbackMode = true;
+  AI_AGENT.isReady = true;
+  
+  statusEl.textContent = "✓ AI Ready (Lite Mode)";
+  statusEl.className = "ai-status ready";
+  
+  inputEl.disabled = false;
+  sendBtn.disabled = false;
+  
+  addAIMessage("👋 Hello! I'm in Lite Mode - I can help analyze your train data with basic insights. Ask me about speeds, stations, or trends!");
+  console.log("✅ AI Agent ready (Fallback/Lite mode)");
 }
 
 function addAIMessage(content, isUser = false) {
@@ -2024,25 +2041,33 @@ async function sendAIMessage() {
   sendBtn.disabled = true;
   
   try {
-    // Build conversation context
-    const dataContext = getDataContext();
-    const messages = [
-      { role: "system", content: AI_AGENT.systemPrompt + "\n\n" + dataContext },
-      ...AI_AGENT.conversationHistory.slice(-6), // Keep last 6 messages for context
-      { role: "user", content: userMessage }
-    ];
+    let aiResponse;
     
-    console.log("📤 Sending message to AI...");
-    
-    // Get response from WebLLM
-    const response = await AI_AGENT.engine.chat.completions.create({
-      messages: messages,
-      temperature: 0.7,
-      max_tokens: 256,
-      top_p: 0.9
-    });
-    
-    const aiResponse = response.choices[0].message.content;
+    if (AI_AGENT.isFallbackMode) {
+      // Use rule-based response in fallback mode
+      aiResponse = generateAIFallbackResponse(userMessage);
+    } else {
+      // Use WebLLM
+      // Build conversation context
+      const dataContext = getDataContext();
+      const messages = [
+        { role: "system", content: AI_AGENT.systemPrompt + "\n\n" + dataContext },
+        ...AI_AGENT.conversationHistory.slice(-6), // Keep last 6 messages for context
+        { role: "user", content: userMessage }
+      ];
+      
+      console.log("📤 Sending message to AI (WebLLM)...");
+      
+      // Get response from WebLLM
+      const response = await AI_AGENT.engine.chat.completions.create({
+        messages: messages,
+        temperature: 0.7,
+        max_tokens: 256,
+        top_p: 0.9
+      });
+      
+      aiResponse = response.choices[0].message.content;
+    }
     
     // Add to conversation history
     AI_AGENT.conversationHistory.push({ role: "user", content: userMessage });
@@ -2061,6 +2086,59 @@ async function sendAIMessage() {
     sendBtn.disabled = false;
     inputEl.focus();
   }
+}
+
+function generateAIFallbackResponse(userMessage) {
+  const msg = userMessage.toLowerCase();
+  const context = getDataContext();
+  
+  // Extract key statistics
+  const speeds = STATE.originalData
+    .map(item => {
+      const speedStr = String(item["Vận Tốc"] || "0").replace(/[^\d.]/g, "");
+      return parseFloat(speedStr) || 0;
+    })
+    .filter(s => s > 0);
+  
+  const avgSpeed = speeds.length > 0 ? (speeds.reduce((a, b) => a + b) / speeds.length).toFixed(2) : "N/A";
+  const maxSpeed = speeds.length > 0 ? Math.max(...speeds).toFixed(2) : "N/A";
+  const minSpeed = speeds.length > 0 ? Math.min(...speeds).toFixed(2) : "N/A";
+  
+  // Count trains and stations
+  const trains = new Set();
+  const stations = new Set();
+  STATE.originalData.forEach(item => {
+    if (item["Tên Tàu"]) trains.add(item["Tên Tàu"]);
+    if (item["Trạm"]) stations.add(item["Trạm"]);
+  });
+  
+  // Generate response based on keywords
+  if (msg.includes("speed") || msg.includes("tốc")) {
+    return `Current speed statistics: Average ${avgSpeed} km/h, Max ${maxSpeed} km/h, Min ${minSpeed} km/h. ${STATE.originalData.length} records analyzed.`;
+  }
+  
+  if (msg.includes("train") || msg.includes("tàu")) {
+    return `I found ${trains.size} unique trains in your data: ${Array.from(trains).slice(0, 5).join(", ")}${trains.size > 5 ? ", and more..." : ""}`;
+  }
+  
+  if (msg.includes("station") || msg.includes("trạm")) {
+    return `I found ${stations.size} stations: ${Array.from(stations).slice(0, 5).join(", ")}${stations.size > 5 ? ", and more..." : ""}`;
+  }
+  
+  if (msg.includes("summary") || msg.includes("overview") || msg.includes("tổng")) {
+    return `Data Summary: ${STATE.originalData.length} records, ${trains.size} trains, ${stations.size} stations. Average speed: ${avgSpeed} km/h. Ready to answer specific questions!`;
+  }
+  
+  if (msg.includes("analyze") || msg.includes("phân tích")) {
+    return `I can analyze your train data for speed trends, station efficiency, or anomalies. What specific aspect interests you?`;
+  }
+  
+  if (msg.includes("trend") || msg.includes("pattern")) {
+    return `Based on ${STATE.originalData.length} records, the average train speed is ${avgSpeed} km/h. I recommend reviewing outliers above ${maxSpeed} km/h for safety considerations.`;
+  }
+  
+  // Default response
+  return `I'm here to help analyze your train data. Ask me about speeds, trains, stations, trends, or data summaries. What would you like to know?`;
 }
 
 function setupAIAgent() {
