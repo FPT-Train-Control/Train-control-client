@@ -16,6 +16,8 @@
     <script src="https://unpkg.com/docx@7.1.0/build/index.js"></script>
     <!-- MQTT.js for HiveMQ WebSocket -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mqtt/5.3.0/mqtt.min.js"></script>
+    <!-- WebLLM -->
+    <script src="https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.46/dist/web-llm.js"></script>
     <style>
       /* Login Modal */
       #loginModal {
@@ -401,6 +403,32 @@
       <!-- Station Controls Container -->
       <div id="stationControlsContainer"></div>
     </div>
+
+    <!-- AI Agent Widget (Bottom Right) -->
+    <div id="aiAgentWidget" class="ai-agent-widget">
+      <div class="ai-agent-header">
+        <span class="ai-agent-title">🤖 AI Data Analyst</span>
+        <button id="aiToggleBtn" class="ai-toggle-btn" title="Toggle AI Agent">−</button>
+      </div>
+      <div id="aiChatContainer" class="ai-chat-container">
+        <div id="aiMessages" class="ai-messages"></div>
+        <div id="aiLoadingIndicator" class="ai-loading" style="display: none;">
+          <div class="ai-spinner"></div>
+        </div>
+      </div>
+      <div class="ai-input-section">
+        <input 
+          type="text" 
+          id="aiInput" 
+          class="ai-input" 
+          placeholder="Ask about the data..."
+          disabled
+        />
+        <button id="aiSendBtn" class="ai-send-btn" disabled>Send</button>
+      </div>
+      <div id="aiStatus" class="ai-status">Loading model...</div>
+    </div>
+
     <script defer src="./script.js"></script>
   </body>
 </html>

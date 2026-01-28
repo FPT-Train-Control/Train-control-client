@@ -1875,9 +1875,223 @@ function hashColorDark(str) {
 }
 
 // ==================== INITIALIZATION ====================
+// ==================== AI AGENT WITH WEBLLM ====================
+const AI_AGENT = {
+  engine: null,
+  model: "Phi-3.5-mini-instruct-q4f16_1-MLC",
+  isReady: false,
+  conversationHistory: [],
+  systemPrompt: `You are an intelligent Data Analyst Assistant for a Vietnamese Railway Train Control System.
+Your role is to help users understand and analyze train data, including:
+- Train speeds and performance metrics
+- Station operations and schedules  
+- Data trends and patterns
+- Anomalies detection
+- Report generation recommendations
+
+When analyzing data:
+1. Be specific with numbers and percentages
+2. Suggest actionable insights
+3. Highlight any concerning trends
+4. Provide recommendations based on data
+
+Always respond in a professional but friendly tone. Keep responses concise (2-3 sentences max) unless asked for details.
+If you don't have specific data context, ask the user to clarify what aspect they'd like to analyze.`
+};
+
+async function initializeAIAgent() {
+  const statusEl = document.getElementById("aiStatus");
+  const inputEl = document.getElementById("aiInput");
+  const sendBtn = document.getElementById("aiSendBtn");
+  
+  try {
+    statusEl.textContent = "Loading AI model...";
+    statusEl.className = "ai-status loading";
+    
+    // Initialize WebLLM
+    const selectedModel = AI_AGENT.model;
+    AI_AGENT.engine = new MLCEngine();
+    
+    console.log("🤖 Initializing WebLLM with model:", selectedModel);
+    
+    AI_AGENT.engine.setInitProgressCallback((info) => {
+      const percent = Math.floor(info.progress * 100);
+      statusEl.textContent = `Loading: ${percent}%`;
+    });
+    
+    await AI_AGENT.engine.reload(selectedModel);
+    
+    AI_AGENT.isReady = true;
+    statusEl.textContent = "✓ AI Ready";
+    statusEl.className = "ai-status ready";
+    
+    inputEl.disabled = false;
+    sendBtn.disabled = false;
+    
+    // Add welcome message
+    addAIMessage("👋 Hello! I'm your Data Analyst. Ask me about train speeds, station data, or trends in your data!");
+    
+    console.log("✅ AI Agent ready");
+  } catch (error) {
+    console.error("❌ AI initialization error:", error);
+    statusEl.textContent = "❌ Failed to load model";
+    statusEl.className = "ai-status error";
+  }
+}
+
+function addAIMessage(content, isUser = false) {
+  const messagesContainer = document.getElementById("aiMessages");
+  const messageDiv = document.createElement("div");
+  messageDiv.className = `ai-message ${isUser ? "user" : "ai"}`;
+  
+  const contentDiv = document.createElement("div");
+  contentDiv.className = "ai-message-content";
+  contentDiv.textContent = content;
+  
+  messageDiv.appendChild(contentDiv);
+  messagesContainer.appendChild(messageDiv);
+  
+  // Auto-scroll to bottom
+  const chatContainer = document.getElementById("aiChatContainer");
+  setTimeout(() => {
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+  }, 0);
+}
+
+function getDataContext() {
+  // Build context from current dashboard data
+  let context = "";
+  
+  if (STATE.originalData && STATE.originalData.length > 0) {
+    const dataSnapshot = STATE.originalData.slice(0, 10); // First 10 records
+    context = `Current Dashboard Data Summary:\n`;
+    context += `Total Records: ${STATE.originalData.length}\n`;
+    
+    // Calculate some basic stats
+    const speeds = STATE.originalData
+      .map(item => {
+        const speedStr = String(item["Vận Tốc"] || "0").replace(/[^\d.]/g, "");
+        return parseFloat(speedStr) || 0;
+      })
+      .filter(s => s > 0);
+    
+    if (speeds.length > 0) {
+      const avgSpeed = (speeds.reduce((a, b) => a + b) / speeds.length).toFixed(2);
+      const maxSpeed = Math.max(...speeds).toFixed(2);
+      const minSpeed = Math.min(...speeds).toFixed(2);
+      context += `Speed Stats - Avg: ${avgSpeed} km/h, Max: ${maxSpeed} km/h, Min: ${minSpeed} km/h\n`;
+    }
+    
+    // Get unique trains and stations
+    const trains = new Set();
+    const stations = new Set();
+    STATE.originalData.forEach(item => {
+      if (item["Tên Tàu"]) trains.add(item["Tên Tàu"]);
+      if (item["Trạm"]) stations.add(item["Trạm"]);
+    });
+    
+    context += `Trains: ${Array.from(trains).join(", ")}\n`;
+    context += `Stations: ${Array.from(stations).join(", ")}\n`;
+  }
+  
+  return context;
+}
+
+async function sendAIMessage() {
+  const inputEl = document.getElementById("aiInput");
+  const sendBtn = document.getElementById("aiSendBtn");
+  const userMessage = inputEl.value.trim();
+  
+  if (!userMessage || !AI_AGENT.isReady) return;
+  
+  // Add user message to chat
+  addAIMessage(userMessage, true);
+  inputEl.value = "";
+  
+  // Show loading indicator
+  const loadingEl = document.getElementById("aiLoadingIndicator");
+  loadingEl.style.display = "flex";
+  inputEl.disabled = true;
+  sendBtn.disabled = true;
+  
+  try {
+    // Build conversation context
+    const dataContext = getDataContext();
+    const messages = [
+      { role: "system", content: AI_AGENT.systemPrompt + "\n\n" + dataContext },
+      ...AI_AGENT.conversationHistory.slice(-6), // Keep last 6 messages for context
+      { role: "user", content: userMessage }
+    ];
+    
+    console.log("📤 Sending message to AI...");
+    
+    // Get response from WebLLM
+    const response = await AI_AGENT.engine.chat.completions.create({
+      messages: messages,
+      temperature: 0.7,
+      max_tokens: 256,
+      top_p: 0.9
+    });
+    
+    const aiResponse = response.choices[0].message.content;
+    
+    // Add to conversation history
+    AI_AGENT.conversationHistory.push({ role: "user", content: userMessage });
+    AI_AGENT.conversationHistory.push({ role: "assistant", content: aiResponse });
+    
+    // Add AI response to chat
+    addAIMessage(aiResponse, false);
+    
+    console.log("📥 AI Response:", aiResponse);
+  } catch (error) {
+    console.error("❌ AI error:", error);
+    addAIMessage("Sorry, I encountered an error processing your request. Please try again.", false);
+  } finally {
+    loadingEl.style.display = "none";
+    inputEl.disabled = false;
+    sendBtn.disabled = false;
+    inputEl.focus();
+  }
+}
+
+function setupAIAgent() {
+  const toggleBtn = document.getElementById("aiToggleBtn");
+  const sendBtn = document.getElementById("aiSendBtn");
+  const inputEl = document.getElementById("aiInput");
+  const widget = document.getElementById("aiAgentWidget");
+  
+  // Toggle minimize
+  toggleBtn.addEventListener("click", () => {
+    widget.classList.toggle("minimized");
+    toggleBtn.classList.toggle("minimized");
+    toggleBtn.textContent = widget.classList.contains("minimized") ? "+" : "−";
+  });
+  
+  // Send message on button click
+  sendBtn.addEventListener("click", sendAIMessage);
+  
+  // Send message on Enter key
+  inputEl.addEventListener("keypress", (e) => {
+    if (e.key === "Enter" && !e.shiftKey && AI_AGENT.isReady) {
+      e.preventDefault();
+      sendAIMessage();
+    }
+  });
+  
+  // Initialize AI when logged in
+  const originalInitAfterLogin = window.initAfterLogin;
+  window.initAfterLogin = async function() {
+    await originalInitAfterLogin.call(this);
+    console.log("🤖 Starting AI Agent initialization...");
+    setTimeout(() => initializeAIAgent(), 1000); // Delay to allow page to fully load
+  };
+}
+
+// ==================== INITIALIZATION ====================
 function init() {
   applySavedUnits();
   setupToggleSidebar();
+  setupAIAgent(); // Setup AI agent UI
   initLoginUI();
 }
   // setupWebSocket();
